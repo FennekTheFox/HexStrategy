@@ -27,9 +27,9 @@ void AGridActor::OnConstruction(const FTransform& Transform)
 		GridPainter->SetGrid(this);
 	}
 
-	if (bBake || bBakeOnConstruction)
+	if (Bake || BakeOnConstruction)
 	{
-		bBake = false;
+		Bake = false;
 
 		RegenerateGrid();
 	}
@@ -77,6 +77,10 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 
 	while (AGridTile** TilePtr = GridTiles.Find(FIntVector(x, y, z)))
 	{
+		EDrawDebugTrace::Type DrawDebugType = (Debug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None);
+		TArray<AActor*> IgnoreActors;
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObstacleTypes = { UEngineTypes::ConvertToObjectType(ObstacleChannel) };
+
 		AGridTile* Tile = *TilePtr;
 
 		//Check up and down tiles
@@ -93,9 +97,59 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 			{
 				AGridTile* AdjacentTile = *AdjacentTilePtr;
 
-				//TODO: Do jump checks
+				//1) Check if the path between the two adjacent tiles is walkable
+				//Traces a sphere path above the tiles to check if theres any collision
+				FHitResult Hit;
+				float Radius = 25;
+				FVector DirectStart = Tile->GetActorLocation() + FVector::UpVector * (Radius + TraceOffset);
+				FVector DirectEnd = AdjacentTile->GetActorLocation() + FVector::UpVector * (Radius + TraceOffset);
 
-				Tile->ConnectedTiles.Add(AdjacentTile);
+
+				if (UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, DirectEnd, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Green, FLinearColor::Red, 5.0f))
+				{
+					//Check if a jump is required
+					//First check if a direct jump is possible
+					// -> Approximate the jumping arc
+					float Z_Peak = FMath::Max(DirectStart.Z, DirectEnd.Z) + TraceOffset;
+
+					//Line trace up above both tiles up to the max of their Z + Offset
+					FVector JumpPeak1 = FVector(DirectStart.X, DirectStart.Y, Z_Peak);
+					FVector JumpPeak2 = FVector(DirectEnd.X, DirectEnd.Y, Z_Peak);
+
+					bool bCanJump = false;
+
+					bool Obstucted1 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, JumpPeak1, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+					
+					if (!Obstucted1)
+					{
+						bool Obstucted2 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectEnd, JumpPeak2, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+					
+						if (!Obstucted2)
+						{
+							bool Obstucted3 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, JumpPeak1, JumpPeak2, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+						
+							if (!Obstucted3)
+							{
+								bCanJump = true;
+							}
+						}
+					}
+
+					if (bCanJump)
+					{
+						FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile);
+						ConnectionData.HeightDifference = (DirectEnd.Z - DirectStart.Z) / HeightIntervals;
+						ConnectionData.bRequiresJump = true;
+						ConnectionData.RequiredJumpHeight = 1 + (Z_Peak- FMath::Min(DirectStart.Z, DirectEnd.Z)) / HeightIntervals;
+					}
+					//Line trace between the two peak points
+
+				}
+				else
+				{
+					FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile);
+					ConnectionData.HeightDifference = (DirectEnd.Z - DirectStart.Z) / HeightIntervals;
+				}
 
 				h++;
 			}
@@ -149,16 +203,21 @@ void AGridActor::CreateTilesAtCoordinates(int x, int y)
 	End.Z = End.Z - MaxTraceDistance / 2;
 
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes = { UEngineTypes::ConvertToObjectType(ECC_WorldStatic) };
-	ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(TraceChannel);
+	ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(GroundChannel);
 	TArray<AActor*> IgnoreActors;
 
 	//UE_LOG(LogTemp, Log, TEXT("Creating Tiles at x=%d, y=%d (%s)"),x, y, *Start.ToString())
 
 	UKismetSystemLibrary::LineTraceMultiForObjects((UObject*)GetWorld(), Start, End, ObjectTypes, true, IgnoreActors, EDrawDebugTrace::None, Hits, true);
 
+	float PreviousTileHeight = std::numeric_limits<float>::max();
+
 	for (int i = 0; i < Hits.Num(); i++)
 	{
 		//TODO: Test for grids that'd be too close to one another here
+		if((PreviousTileHeight - Hits[i].Location.Z) < MinTileVerticalDistance)
+			continue;
+
 		FIntVector Coordinates = FIntVector(x, y, i);
 
 		AGridTile* newTile = GetWorld()->SpawnActor<AGridTile>();
@@ -169,6 +228,7 @@ void AGridActor::CreateTilesAtCoordinates(int x, int y)
 		newTile->ParentGrid = this;
 
 		GridTiles.FindOrAdd(Coordinates, newTile);
+		PreviousTileHeight = Hits[i].Location.Z;
 	}
 
 }

@@ -33,13 +33,20 @@ class AGridActor : public AActor
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
-		bool bBake = false;
+		bool Bake = false;
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
-		bool bBakeOnConstruction = false;
+		bool BakeOnConstruction = false;
+	UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
+		bool Debug = false;
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
-		TEnumAsByte<ECollisionChannel> TraceChannel = ECC_GameTraceChannel1;
+		TEnumAsByte<ECollisionChannel> GroundChannel = ECC_GameTraceChannel1;
+	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
+		TEnumAsByte<ECollisionChannel> ObstacleChannel = ECC_GameTraceChannel2;
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
 		float MaxTraceDistance = 100000.0f;
+	//Subdivides heights into intervals of this size
+	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
+		float TraceOffset = 25.f;
 
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
 		bool bIsActive = true;
@@ -49,6 +56,10 @@ public:
 		float TileSize = 100.0f;
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
 		float TileSpacing = 0.02f;
+	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
+		float HeightIntervals = 25.f;
+	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
+		float MinTileVerticalDistance =100.f;
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
 		EGridOrientation GridOrientation;
 
