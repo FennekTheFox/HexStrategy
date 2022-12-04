@@ -59,7 +59,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
 		float HeightIntervals = 25.f;
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
-		float MinTileVerticalDistance =100.f;
+		float MinTileVerticalDistance = 100.f;
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
 		EGridOrientation GridOrientation;
 
