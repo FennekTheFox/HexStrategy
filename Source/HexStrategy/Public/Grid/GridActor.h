@@ -20,8 +20,8 @@ struct FTilePainterSettings
 UENUM(BlueprintType)
 enum class EGridOrientation : uint8
 {
-	Horizontal,
-	Vertical
+	Vertical = 0,
+	Horizontal = 1
 };
 
 UCLASS()
@@ -47,6 +47,9 @@ public:
 	//Subdivides heights into intervals of this size
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
 		float TraceOffset = 25.f;
+	//Subdivides heights into intervals of this size
+	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
+		float ProbeSize = 25.f;
 
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
 		bool bIsActive = true;
@@ -96,6 +99,8 @@ public:
 
 	UFUNCTION(BlueprintPure)
 		FVector GetCoordinateWorldCenter(int32 x, int32 y);
+	UFUNCTION(BlueprintPure)
+		AGridTile* GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied = false);
 
 private:
 	void BakeConnectedTiles(int x, int y);

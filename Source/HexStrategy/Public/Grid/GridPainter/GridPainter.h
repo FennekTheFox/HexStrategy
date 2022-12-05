@@ -2,7 +2,7 @@
 
 #include "GridPainter.generated.h"
 
-class UHexGridTile;
+class AGridTile;
 class AGridActor;
 class AGridTile;
 

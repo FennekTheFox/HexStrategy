@@ -7,7 +7,7 @@
 #include "FlipbookSuits.generated.h"
 
 //Enum listing all the possible facing directions of a unit
-UENUM()
+UENUM(BlueprintType)
 enum class EFacingDirection : uint8
 {
 	Front = 0,
@@ -27,7 +27,7 @@ ENUM_RANGE_BY_COUNT(EFacingDirection, EFacingDirection::Count);		//Makes the enu
 
 
 //Enum listing all the possible sprite animation states
-UENUM()
+UENUM(BlueprintType)
 enum class ESpriteAnimationState : uint8
 {
 	Idle = 0,

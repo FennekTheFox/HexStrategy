@@ -6,6 +6,8 @@
 #include "Libraries/GridUtilityLibrary.h"
 
 
+#define SQRT_THREE_HALVED 0.866f
+
 AGridActor::AGridActor()
 {
 	//PrimaryActorTick.bCanEverTick = true;
@@ -46,21 +48,84 @@ void AGridActor::RefreshProperties()
 FVector AGridActor::GetCoordinateWorldCenter(int32 x, int32 y)
 {
 	FVector pX, pY;
-	if (GridOrientation == EGridOrientation::Horizontal)
+	if (GridOrientation == EGridOrientation::Vertical)
 	{
-		pX = x * TileSize * FVector(.866f, 0.0f, 0.0f);
-		pY = y * TileSize * FVector(.866f, 1.494f, 0.0f) / 2;
+		pX = x * TileSize * FVector(SQRT_THREE_HALVED, 0.0f, 0.0f);
+		pY = y * TileSize * FVector(SQRT_THREE_HALVED, 1.5f, 0.0f) / 2;
 	}
 	else
 	{
-		pY = y * TileSize * FVector(0.0f, .866f, 0.0f);
-		pX = x * TileSize * FVector(1.494f, .866f, 0.0f) / 2;
+		pY = y * TileSize * FVector(0.0f, SQRT_THREE_HALVED, 0.0f);
+		pX = x * TileSize * FVector(1.5f, SQRT_THREE_HALVED, 0.0f) / 2;
 	}
 
 	return pX + pY;
 }
 
 //Constant array of all connected tiles
+
+AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied)
+{
+	FVector Offset = Coordinates - GetActorLocation();
+	AGridTile* ret = nullptr;
+
+	int32 closestY, closestX;
+
+	//Find closest XY coordinates
+	if (GridOrientation == EGridOrientation::Vertical)
+	{
+		//In a horizontally aligned grid
+
+		closestY = FMath::RoundToInt(Offset.Y / (0.75f * TileSize));
+		closestX = FMath::RoundToInt((Offset.X - (SQRT_THREE_HALVED / 2 * closestY * TileSize)) / (SQRT_THREE_HALVED * TileSize));
+	}
+	else
+	{
+		//In a vertically grid
+
+		closestX = FMath::RoundToInt(Offset.X / (0.75f * TileSize));
+		closestY = FMath::RoundToInt((Offset.Y - (SQRT_THREE_HALVED / 2 * closestX * TileSize)) / (SQRT_THREE_HALVED * TileSize));
+	}
+
+	//Iterate vertically
+	int32 h = 0;
+	float minDist = std::numeric_limits<float>::max();
+
+	while (AGridTile** compptr = GridTiles.Find(FIntVector(closestX, closestY, h)))
+	{
+		AGridTile* comp = *compptr;
+		float compDist = (comp->GetActorLocation() - Coordinates).Size();
+
+		if (compDist < minDist)
+		{
+			minDist = compDist;
+			ret = comp;
+		}
+
+		h++;
+	}
+
+	if(ret)
+		return ret;
+
+	//If we dont find one with the closest xy coordinates, persue a brute force 
+	//TODO: find a better way to do this
+	for (auto&& KVPair : GridTiles)
+	{
+		AGridTile* comp = KVPair.Value;
+
+		float compDist = (comp->GetActorLocation() - Coordinates).Size();
+
+		if (compDist < minDist)
+		{
+			minDist = compDist;
+			ret = comp;
+		}
+	}
+
+	return ret;
+}
+
 const  TArray<FIntVector> AdjacentTileDirections =
 {
 FIntVector(1, 0, 0),
@@ -100,12 +165,11 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 				//1) Check if the path between the two adjacent tiles is walkable
 				//Traces a sphere path above the tiles to check if theres any collision
 				FHitResult Hit;
-				float Radius = 25;
-				FVector DirectStart = Tile->GetActorLocation() + FVector::UpVector * (Radius + TraceOffset);
-				FVector DirectEnd = AdjacentTile->GetActorLocation() + FVector::UpVector * (Radius + TraceOffset);
+				FVector DirectStart = Tile->GetActorLocation() + FVector::UpVector * (ProbeSize + TraceOffset);
+				FVector DirectEnd = AdjacentTile->GetActorLocation() + FVector::UpVector * (ProbeSize + TraceOffset);
 
 
-				if (UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, DirectEnd, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Green, FLinearColor::Red, 5.0f))
+				if (UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, DirectEnd, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Green, FLinearColor::Red, 5.0f))
 				{
 					//Check if a jump is required
 					//First check if a direct jump is possible
@@ -118,15 +182,15 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 
 					bool bCanJump = false;
 
-					bool Obstucted1 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, JumpPeak1, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+					bool Obstucted1 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, JumpPeak1, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
 					
 					if (!Obstucted1)
 					{
-						bool Obstucted2 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectEnd, JumpPeak2, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+						bool Obstucted2 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectEnd, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
 					
 						if (!Obstucted2)
 						{
-							bool Obstucted3 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, JumpPeak1, JumpPeak2, Radius, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+							bool Obstucted3 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, JumpPeak1, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
 						
 							if (!Obstucted3)
 							{

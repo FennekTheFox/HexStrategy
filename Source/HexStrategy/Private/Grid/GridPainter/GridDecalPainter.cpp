@@ -60,8 +60,8 @@ FRotator UGridDecalPainter::GetTileDecalRotation()
 	{
 		switch (Grid->GridOrientation)
 		{
-		case EGridOrientation::Vertical: return FRotator(90.0f, 0.0f, 90.0f); break;
-		case EGridOrientation::Horizontal: return FRotator(90.0f, 0.0f, 0.0f); break;
+		case EGridOrientation::Horizontal: return FRotator(90.0f, 0.0f, 90.0f); break;
+		case EGridOrientation::Vertical: return FRotator(90.0f, 0.0f, 0.0f); break;
 		default: return FRotator(0.0f, 0.0f, 0.0f);
 		}
 	}
@@ -73,7 +73,9 @@ void UGridDecalPainter::Clear()
 	for (auto&& KVPair : CoordinatesToDecal)
 	{
 		UDecalComponent* Decal = KVPair.Value;
-		Decal->DestroyComponent();
+
+		if(Decal)
+			Decal->DestroyComponent();
 	}
 
 	CoordinatesToDecal.Reset();

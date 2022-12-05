@@ -7,6 +7,7 @@ UENUM(BlueprintType)
 enum class ETileDisplayState : uint8
 {
 	Default = 0,
+	ShowMovable = 1,
 
 	Count UMETA(Hidden)
 };
@@ -63,5 +64,19 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 		ETileDisplayState GetDisplayState() {return ETileDisplayState::Default;}
-//...
+
+
+	UFUNCTION(BlueprintCallable)
+		bool OccupyTile(AActor* InOccupyingActor);
+	UFUNCTION(BlueprintCallable)
+		bool TryLeaveTile(AActor* InOccupyingActor);
+	UFUNCTION(BlueprintPure)
+		AActor* GetOccupyingUnit();
+	UFUNCTION(BlueprintPure)
+		bool GetIsOccupied();
+
+
+private:
+	UPROPERTY()
+		AActor* OccupyingActor;
 };

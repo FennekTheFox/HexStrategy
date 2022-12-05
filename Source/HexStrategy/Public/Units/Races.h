@@ -24,6 +24,8 @@ public:
 		FLinearColor EyeColor;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FLinearColor HairColor;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class UFlipbookHairStyle* HairStyle;
 };
 
 
@@ -48,6 +50,8 @@ public:
 		TMap<FLinearColor, float> PossibleEyeColors;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FLinearColor, float> PossibleHairColors;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TMap<class UFlipbookHairStyle*, float> PossibleHairStyles;
 
 
 protected:
