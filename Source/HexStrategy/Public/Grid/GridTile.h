@@ -3,6 +3,12 @@
 #include "Components/SceneComponent.h"
 #include "GridTile.generated.h"
 
+
+class UGameplayTask;
+
+
+
+//Enum for the different display states this tile can take
 UENUM(BlueprintType)
 enum class ETileDisplayState : uint8
 {
@@ -13,18 +19,38 @@ enum class ETileDisplayState : uint8
 };
 ENUM_RANGE_BY_COUNT(ETileDisplayState, ETileDisplayState::Count);
 
+
+//Interface for GameplayTasks relating to units leaving tiles
+UINTERFACE()
+class ULeaveTileTask : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class ILeaveTileTask
+{
+	GENERATED_BODY()
+
+public:
+	//Function called at the end of execution to see if execution impeded leaving the tile
+	UFUNCTION(BlueprintNativeEvent)
+		bool GetMovementUnimpeded();
+};
+
+
+
 USTRUCT(BlueprintType)
 struct FConnectedTileData
 {
 	GENERATED_BODY()
-	
-	FConnectedTileData(){}
+
+		FConnectedTileData() {}
 	FConnectedTileData(int _HeightDifference, bool _bRequiresJump, int _RequiredJumpHeight, bool _bRequiresLeap, int _RequiredLeapDistance)
-	: HeightDifference(_HeightDifference)
-	, bRequiresJump(_bRequiresJump)
-	, RequiredJumpHeight(_RequiredJumpHeight)
-	, bRequiresLeap(_bRequiresLeap)
-	, RequiredLeapDistance(_RequiredLeapDistance){}
+		: HeightDifference(_HeightDifference)
+		, bRequiresJump(_bRequiresJump)
+		, RequiredJumpHeight(_RequiredJumpHeight)
+		, bRequiresLeap(_bRequiresLeap)
+		, RequiredLeapDistance(_RequiredLeapDistance) {}
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 		int HeightDifference = 0;
@@ -44,7 +70,7 @@ class AGridTile : public AActor
 {
 	GENERATED_BODY()
 
-	AGridTile();
+		AGridTile();
 
 
 public:
@@ -63,13 +89,19 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-		ETileDisplayState GetDisplayState() {return ETileDisplayState::Default;}
+		ETileDisplayState GetDisplayState() { return ETileDisplayState::Default; }
 
 
-	UFUNCTION(BlueprintCallable)
-		bool OccupyTile(AActor* InOccupyingActor);
-	UFUNCTION(BlueprintCallable)
-		bool TryLeaveTile(AActor* InOccupyingActor);
+	//UFUNCTION(BlueprintCallable)
+	bool OccupyTile(AActor* InOccupyingActor);
+	//UFUNCTION(BlueprintCallable)
+
+	//Function that asyncronously tries to leave the tile by calling all events bound to it, then calls the
+	//Callback passed via parameters to signla whether or not the leave was successful
+	void TryLeaveTile(AActor* InOccupyingActor, std::function<void(bool)> OnComplete);
+	//Forcefully abandons the tile without triggering events
+	void AbandonTile(AActor* InOccupyingActor);
+
 	UFUNCTION(BlueprintPure)
 		AActor* GetOccupyingUnit();
 	UFUNCTION(BlueprintPure)
@@ -79,4 +111,9 @@ public:
 private:
 	UPROPERTY()
 		AActor* OccupyingActor;
+	UPROPERTY()
+		TArray<UGameplayTask*> OnEnterTasks;
+	UPROPERTY()
+		TArray<UGameplayTask*> OnLeaveTasks;
 };
+

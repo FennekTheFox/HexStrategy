@@ -20,6 +20,15 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
+		},
+		{
+			"Name": "PaperFlipbookWidget",
+			"Enabled": true,
+			"MarketplaceURL": "https://unrealengineresources.com/plugins"
 		}
 	]
 }

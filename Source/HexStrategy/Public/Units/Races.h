@@ -25,36 +25,40 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FLinearColor HairColor;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		class UFlipbookHairStyle* HairStyle;
+		class UHairStyle* HairStyle;
 };
 
-
+//This data asset class is used to define the possible appearance and ability values that a 
+//Race can have.
 UCLASS(BlueprintType, Blueprintable)
 class UUnitRaceTemplates : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
+	//The localizable name of the race
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FText RaceLabel;
 
-
+	//The body type to be of the race 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		EBodyType RaceBodyType = EBodyType::Humanoid;
 
+	//The body type flipbook suit for the race
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		class USpriteFlipbookSuit* BodyFlipbookSuit;
+	//Weighted array to define possible body colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FLinearColor, float> PossibleBodyColors;
+	//Weighted array to define possible Eye colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FLinearColor, float> PossibleEyeColors;
+	//Weighted array to define possible hair colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FLinearColor, float> PossibleHairColors;
+	//The number and distribution for all possible hair styles
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<class UFlipbookHairStyle*, float> PossibleHairStyles;
+		TMap<class UHairStyle*, float> PossibleHairStyles;
 
-
-protected:
-
-	//... stuff like skin and eye colour range and the 
+	//TODO: 
 };
