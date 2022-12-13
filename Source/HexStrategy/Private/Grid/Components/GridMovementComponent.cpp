@@ -6,6 +6,7 @@
 //#include "Grid/GridActions/GridAction_Move.h"
 //#include "Grid/Actors/GridUnit.h"
 #include "Curves/CurveFloat.h"
+#include "GameplayAbilities/GAS_UnitAbilities.h"
 
 
 
@@ -30,11 +31,12 @@ UGridMovementComponent::UGridMovementComponent()
 	{
 		JumpCurve_Vertical = JCV_Finder.Object;
 	}
-	//static ConstructorHelpers::FObjectFinder<UGridActionData_Base> ActionData_Finder(TEXT("GridActionData_Base'/Game/Developers/Fabian/SkillSystem/DataAssets/Generic/DA_Move.DA_Move'"));
-	//if (ActionData_Finder.Succeeded())
-	//{
-	//	ActionData = ActionData_Finder.Object;
-	//}
+
+	static ConstructorHelpers::FClassFinder<UGAS_UnitAbility> MoveAbilityFinder(TEXT("/Script/Engine.Blueprint'/Game/Blueprint/Abilities/GA_GridMove.GA_GridMove_C'"));
+	if (ensure(MoveAbilityFinder.Succeeded()))
+	{
+		MoveAbilityClass = MoveAbilityFinder.Class;
+	}
 }
 
 void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
@@ -429,8 +431,7 @@ void UGridMovementComponent::BeginPlay()
 
 	if (ensure(ASC))
 	{
-		FGameplayAbilitySpec Spec;
-		Spec.Ability = NewObject<UGridMoveAbility>(this);
+		FGameplayAbilitySpec Spec = FGameplayAbilitySpec(MoveAbilityClass, 1, INDEX_NONE, this);
 		MoveAbilityHandle = ASC->GiveAbility(Spec);
 	}
 }
@@ -465,25 +466,4 @@ void UGridMovementComponent::OnUnregister()
 	Super::OnUnregister();
 
 	PathFinder = nullptr;
-}
-//
-//void UGridMovementComponent::CollectActions_Implementation(TArray<UGridActionBase*>& OutActions)
-//{
-//	UGridAction_Move* Action = NewObject<UGridAction_Move>(this, TEXT("GridAction_Move"));
-//	Action->ActionData = ActionData;
-//
-//	OutActions.Add(Action);
-//}
-
-bool UGridMoveAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags /*= nullptr*/, const FGameplayTagContainer* TargetTags /*= nullptr*/, OUT FGameplayTagContainer* OptionalRelevantTags /*= nullptr*/) const
-{
-	Super::CanActivateAbility(Handle, ActorInfo, nullptr, nullptr, nullptr);
-
-	return true;
-}
-
-void UGridMoveAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
-{
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 }

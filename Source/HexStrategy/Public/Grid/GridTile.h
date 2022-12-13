@@ -13,30 +13,48 @@ UENUM(BlueprintType)
 enum class ETileDisplayState : uint8
 {
 	Default = 0,
-	ShowMovable = 1,
+	ShowAsHovered = 1,
+	ShowAsSelected = 2,
+	ShowAsMovable = 3,
+	ShowAsAttackable = 4,
+	ShowAsPath = 5,
+	ShowAsInvalid = 6,
+	ShowAsAttackTarget_Valid = 7,
+	ShowAsAttackTarget_Invalid = 8,
 
 	Count UMETA(Hidden)
 };
 ENUM_RANGE_BY_COUNT(ETileDisplayState, ETileDisplayState::Count);
 
 
-//Interface for GameplayTasks relating to units leaving tiles
-UINTERFACE()
-class ULeaveTileTask : public UInterface
+USTRUCT()
+struct FTileStateLayer
 {
 	GENERATED_BODY()
+
+		void SetTileStateForLayer(const UObject* Agent, ETileDisplayState NewState);
+	void ResetTileStateForLayer(const UObject* Agent);
+	ETileDisplayState GetTileStateForLayer();
+
+	TArray<TPair<const UObject*, TEnumAsByte<ETileDisplayState>>> LayerContent;
 };
 
-class ILeaveTileTask
+
+USTRUCT()
+struct FTileState
 {
 	GENERATED_BODY()
+
+		void SetTileState(const UObject* Agent, ETileDisplayState NewState, int32 Layer);
+	void ResetTileState(const UObject* Agent);
+	ETileDisplayState GetTileState();
 
 public:
-	//Function called at the end of execution to see if execution impeded leaving the tile
-	UFUNCTION(BlueprintNativeEvent)
-		bool GetMovementUnimpeded();
-};
+	UPROPERTY()
+		TMap<int32, FTileStateLayer> Layers;
 
+private:
+};
 
 
 USTRUCT(BlueprintType)
@@ -65,6 +83,24 @@ struct FConnectedTileData
 };
 
 
+//Interface for GameplayTasks relating to units leaving tiles
+UINTERFACE()
+class ULeaveTileTask : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class ILeaveTileTask
+{
+	GENERATED_BODY()
+
+public:
+	//Function called at the end of execution to see if execution impeded leaving the tile
+	UFUNCTION(BlueprintNativeEvent)
+		bool GetMovementUnimpeded();
+};
+
+
 UCLASS(BlueprintType, hideCategories = (WorldPartition, Input, Actor, Cooking, DataLayers, Replication, Rendering, Collision, HLOD, Physics, Networking))
 class AGridTile : public AActor
 {
@@ -88,9 +124,15 @@ public:
 
 
 public:
-	UFUNCTION(BlueprintCallable)
+
+	UFUNCTION(BlueprintCallable, Category = "Tile State")
+		void SetTileState(const UObject* Agent, ETileDisplayState NewState, int32 Layer = 0);
+	UFUNCTION(BlueprintCallable, Category = "Tile State")
+		void ResetTileState(const UObject* Agent);
+	UFUNCTION(BlueprintPure, Category = "Tile State")
 		ETileDisplayState GetDisplayState() { return ETileDisplayState::Default; }
 
+	void UpdateTile();
 
 	//UFUNCTION(BlueprintCallable)
 	bool OccupyTile(AActor* InOccupyingActor);
@@ -115,5 +157,8 @@ private:
 		TArray<UGameplayTask*> OnEnterTasks;
 	UPROPERTY()
 		TArray<UGameplayTask*> OnLeaveTasks;
+
+	UPROPERTY(VisibleAnywhere)
+		FTileState DisplayState;
 };
 

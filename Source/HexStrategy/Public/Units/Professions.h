@@ -8,11 +8,11 @@
 
 
 UCLASS(BlueprintType, Blueprintable)
-class UUnitProfessionTemplates : public UDataAsset
+class UUnitProfession : public UDataAsset
 {
 	GENERATED_BODY()
 
-	UUnitProfessionTemplates()
+	UUnitProfession()
 	{
 		Refresh();
 	}

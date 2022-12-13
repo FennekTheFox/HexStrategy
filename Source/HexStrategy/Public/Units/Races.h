@@ -24,8 +24,12 @@ public:
 		FLinearColor EyeColor;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FLinearColor HairColor;
+	//The chosen HairStyle for this unit
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		class UHairStyle* HairStyle;
+	//The chosen portrait data for this object
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class UPortraitData* PortraitData;
 };
 
 //This data asset class is used to define the possible appearance and ability values that a 
@@ -56,6 +60,8 @@ public:
 	//Weighted array to define possible hair colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FLinearColor, float> PossibleHairColors;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TMap<UTexture2D*, float> PossiblePortraitEyes;
 	//The number and distribution for all possible hair styles
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<class UHairStyle*, float> PossibleHairStyles;

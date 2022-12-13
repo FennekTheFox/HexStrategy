@@ -25,24 +25,6 @@ enum EGridMovementState
 };
 
 
-UCLASS(BlueprintType)
-class UGridMoveAbility : public UGameplayAbility
-{
-	GENERATED_BODY()
-public:
-	bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
-
-protected:
-	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-
-public:
-	UPROPERTY()
-		AGridTile* TargetTile = nullptr;
-	UPROPERTY()
-		UGridMovementComponent* GMC = nullptr;
-};
-
 
 UCLASS(ClassGroup = (Grid), Blueprintable, meta = (BlueprintSpawnableComponent))
 class UGridMovementComponent : public UActorComponent//, public IGridActionComponent
@@ -70,7 +52,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ResumeMovement();
 	UFUNCTION(BlueprintPure)
-		bool CanMoveToTile(UPARAM(ref)AGridTile* TargetTile, TArray<AGridTile*>& PotentialPath);
+		bool CanMoveToTile(AGridTile* TargetTile, TArray<AGridTile*>& PotentialPath);
 	UFUNCTION(BlueprintPure)
 		bool CanPassTile(AGridTile* InTile);
 	UFUNCTION(BlueprintPure)
@@ -146,6 +128,9 @@ protected:
 		AGridActor* Grid;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Query")
 		UGridMovementAgent* PathFinder;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+		TSubclassOf<class UGAS_UnitAbility> MoveAbilityClass;
 
 
 private:

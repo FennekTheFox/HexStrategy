@@ -84,6 +84,7 @@ private:
 
 
 public:
+	UGridPainter* GetGridPainter() {return GridPainter;}
 	void OnConstruction(const FTransform& Transform) override;
 	void RefreshProperties();	//Makes sure all keys and subkeys are always present
 	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override

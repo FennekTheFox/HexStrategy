@@ -26,12 +26,12 @@ public:
 	 * Function to reset the grid painter, used when SetGrid gets called (because a new grid needs to be painted.
 	 */
 	virtual void Clear(){};
+	/**
+	* Updates a specific tile, use this when the state of a small subset of tiles changes
+	*/
+	virtual void UpdateTile(AGridTile* Tile) {};
 
 protected:
-	/**
- * Updates a specific tile, use this when the state of a small subset of tiles changes
- */
-	virtual void UpdateTile(AGridTile* Tile) {};
 
 protected:
 	UPROPERTY()
