@@ -19,6 +19,6 @@ int UGridUtilityLibrary::GetHexDistance_FromCoords(FIntVector A, FIntVector B)
 
 int UGridUtilityLibrary::GetHexDistance_FromTiles(AGridTile* A, AGridTile* B)
 {
-	return 0;//GetHexDistance_FromCoords(A->Coords, B->Coords);
+	return GetHexDistance_FromCoords(A->Coordinates, B->Coordinates);
 }
 

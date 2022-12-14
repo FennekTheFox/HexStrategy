@@ -63,8 +63,7 @@ public:
 	//The units attributes
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes")
 		FUnitAttributeBlock Attributes;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes")
-		EUnitAffiliation Affiliation {EUnitAffiliation::Neutral0};
+
 
 
 	//The point in time when the unit has been recruited

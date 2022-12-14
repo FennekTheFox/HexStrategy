@@ -5,6 +5,45 @@
 
 class UGridPathFinderAgent;
 
+
+struct FWidthSearchHelper
+{
+public:
+	FWidthSearchHelper(AGridTile* Origin, AGridActor* InGrid, UGridPathFinderAgent* InAgent)
+		:Start(Origin)
+		, Grid(InGrid)
+		, Agent(InAgent)
+	{
+		Comparer.TravelCost = &TravelCost;
+		TravelCost.FindOrAdd(Start, 0.f);
+		OpenSet.HeapPush(Start, Comparer);
+	};
+
+	bool Step();
+	void GetAllReachableTiles(TArray<AGridTile*>& OutTiles);
+public:
+	bool Success = false;
+private:
+	struct FComparer
+	{
+		bool operator()(const AGridTile& L, const AGridTile& R) const
+		{
+			int32 LTravelCost = TravelCost->Contains(&L) ? TravelCost->FindChecked(&L) : TNumericLimits<int32>::Max();
+			int32 RTravelCost = TravelCost->Contains(&R) ? TravelCost->FindChecked(&R) : TNumericLimits<int32>::Max();
+			return LTravelCost <= RTravelCost;
+		}
+		TMap<AGridTile*, int32>* TravelCost;
+	} Comparer;
+
+	TArray<AGridTile*> OpenSet;
+	TSet<AGridTile*> ReachedTiles;
+	TMap<AGridTile*, int32> TravelCost;
+	TMap<AGridTile*, AGridTile*> CameFrom;
+	AGridTile* Start;
+	AGridActor* Grid;
+	UGridPathFinderAgent* Agent;
+};
+
 struct FAStarHelper
 {
 public:
@@ -16,8 +55,8 @@ public:
 	{
 		Comparer.FCost = &FCost;
 
-		GCost.FindOrAdd(Start, 0.f);
-		FCost.FindOrAdd(Start, DistanceHeuristic(Start, Goal));
+		TravelCost.FindOrAdd(Start, 0.f);
+		FCost.FindOrAdd(Start, 100 * DistanceHeuristic(Start, Goal));
 
 		OpenSet.HeapPush(Start, Comparer);
 	};
@@ -31,19 +70,14 @@ private:
 
 	struct FComparer
 	{
-		bool operator()(const AGridTile& L, const AGridTile& R) const
-		{
-			int32 LFCost = FCost->Contains(&L) ? FCost->FindChecked(&L) : TNumericLimits<int32>::Max();
-			int32 RFCost = FCost->Contains(&R) ? FCost->FindChecked(&R) : TNumericLimits<int32>::Max();
-			return LFCost <= RFCost;
-		}
+		bool operator()(const AGridTile& L, const AGridTile& R) const;
 		TMap<AGridTile*, int32>* FCost;
 	} Comparer;
 
 	TArray<AGridTile*> OpenSet;
 	TSet<AGridTile*> CloseSet;
 	TMap<AGridTile*, int32> FCost;
-	TMap<AGridTile*, int32> GCost;
+	TMap<AGridTile*, int32> TravelCost;
 	TMap<AGridTile*, AGridTile*> CameFrom;
 	AGridTile* Start;
 	AGridTile* Goal;
@@ -122,6 +156,10 @@ public:
 	virtual bool IsReachable_Implementation(const FGridPathFinderRequest InRequest);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HexGridPathFinder")
+		void JumpingRequired(AGridTile* From, AGridTile* To, bool& JumpingRequired, float& UpperBound, bool bDrawDebug = false);
+	virtual void JumpingRequired_Implementation(AGridTile* From, AGridTile* To, bool& JumpingRequired, float& UpperBound, bool bDrawDebug = false);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HexGridPathFinder")
 		int32 GetCost(AGridTile* From, AGridTile* To);
 	virtual int32 GetCost_Implementation(AGridTile* From, AGridTile* To);
 
@@ -130,8 +168,8 @@ public:
 	virtual int32 Heuristic_Implementation(AGridTile* From, AGridTile* To);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HexGridPathFinder")
-		bool CanPassThroughTile(AGridTile* Tile);
-	virtual bool CanPassThroughTile_Implementation(AGridTile* Tile);
+		bool CanPassThroughTile(AGridTile* FromTile, AGridTile* ToTile);
+	virtual bool CanPassThroughTile_Implementation(AGridTile* FromTile, AGridTile* ToTile);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HexGridPathFinder")
 		bool CanStandOnTile(AGridTile* Tile);
@@ -152,6 +190,9 @@ public:
 		AGridActor* GridActor;
 };
 
+
+
+
 UCLASS()
 class UGridMovementAgent : public UGridPathFinderAgent
 {
@@ -159,11 +200,8 @@ class UGridMovementAgent : public UGridPathFinderAgent
 
 
 public:
-	bool CanPassThroughTile_Implementation(AGridTile* Tile) override;
-
-
-
-	bool CanStandOnTile_Implementation(AGridTile* Tile) override;
+	virtual bool CanPassThroughTile_Implementation(AGridTile* FromTile, AGridTile* ToTile) override;
+	virtual bool CanStandOnTile_Implementation(AGridTile* Tile) override;
 
 public:
 	UPROPERTY()

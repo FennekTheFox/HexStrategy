@@ -5,29 +5,14 @@
 #include "GAS_UnitAbilities.generated.h"
 
 class AGridTile;
-
+class UUnitAbilityVisualizer;
+class UCategoryData;
 
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityDelegate, class UGAS_UnitAbility*, Ability);
 
 
-//General category data asset. Defines categories to have
-//A localizable lable, tag and priority
-UCLASS(BlueprintType)
-class UCategoryData : public UDataAsset
-{
-	GENERATED_BODY()
 
 
-public:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "CategorySettings")
-		FText CategoryLabel;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "CategorySettings")
-		FName CategoryName;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "CategorySettings")
-		int32 CategoryPriority;
-};
 
 UCLASS()
 class UGAS_UnitAbility : public UGameplayAbility
@@ -37,26 +22,18 @@ class UGAS_UnitAbility : public UGameplayAbility
 public:
 	UGAS_UnitAbility(){};
 
-	//Visualization
-	UFUNCTION(BlueprintCallable, Category = "Action Base")
-		virtual void UpdateVisualization(AGridTile* PotentialTarget) {};
-	UFUNCTION(BlueprintCallable, Category = "Action Base")
-		virtual void ShowHoveredVisualization(AGridTile* PotentialTarget) {};
-	UFUNCTION(BlueprintCallable, Category = "Action Base")
-		virtual void HideHoveredVisualization() {};
-
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Action Base")
-		void SupplyTileToAbility(class AGridTile* Target);
-
-
+	//Sounds good, doesnt work
+	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Action Base")
+	//	void SupplyTileToAbility(class AGridTile* Target);
 
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")
 		FText AbilityLabel;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")
-		TSubclassOf<UCategoryData> AbilityCategory;
+		UCategoryData* AbilityCategory;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")
+		TSubclassOf<UUnitAbilityVisualizer> VisualizerClass;
 
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")

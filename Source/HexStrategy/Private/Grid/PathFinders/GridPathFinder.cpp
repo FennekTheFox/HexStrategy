@@ -1,8 +1,59 @@
 #include "Grid/PathFinders/GridPathFinder.h"
 
 #include "Grid/GridActor.h"
-#include "Libraries/GridUtilityLibrary.h"
+#include "Libraries/UtilityLibrary.h"
 #include "Grid/Components/GridMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include <limits>
+#include "Kismet/KismetMathLibrary.h"
+#include "Libraries/GridUtilityLibrary.h"
+
+
+bool FWidthSearchHelper::Step()
+{
+
+	if (OpenSet.Num() == 0)
+		return false;
+
+	AGridTile* Current = nullptr;
+
+
+	OpenSet.HeapPop(Current, Comparer);
+	ReachedTiles.Add(Current);
+
+
+	for (auto&& KVPair : Current->ConnectedTiles)
+	{
+		AGridTile* UndiscoveredNeighbour = KVPair.Key;
+
+		if (ReachedTiles.Contains(UndiscoveredNeighbour)) continue;
+		//If we cant pass through the tile because it is occupied, dont consider it a valid tile for a path
+		if (!Agent->CanPassThroughTile(Current, UndiscoveredNeighbour)) continue;
+
+		int NewCost = TravelCost[Current] + 1;
+
+		if ((!TravelCost.Contains(UndiscoveredNeighbour) && NewCost <= Agent->Request.MaxCost) || (TravelCost.Contains(UndiscoveredNeighbour) && NewCost < TravelCost[UndiscoveredNeighbour]))
+		{
+			TravelCost.FindOrAdd(UndiscoveredNeighbour, NewCost);
+
+			if (!OpenSet.Contains(UndiscoveredNeighbour))
+			{
+				OpenSet.HeapPush(UndiscoveredNeighbour, Comparer);
+			}
+
+			CameFrom.FindOrAdd(UndiscoveredNeighbour, Current);
+		}
+	}
+
+	return true;
+}
+
+
+void FWidthSearchHelper::GetAllReachableTiles(TArray<AGridTile*>& OutTiles)
+{
+	OutTiles = ReachedTiles.Array();
+}
+
 
 
 bool FAStarHelper::Step()
@@ -11,7 +62,6 @@ bool FAStarHelper::Step()
 		return false;
 
 	AGridTile* Current = nullptr;
-
 
 	OpenSet.HeapPop(Current, Comparer);
 
@@ -23,22 +73,22 @@ bool FAStarHelper::Step()
 
 	CloseSet.Add(Current);
 
-	TArray<AGridTile*> Neighbours;
-
 	for (auto&& KVPair : Current->ConnectedTiles)
 	{
 		AGridTile* UndiscoveredNeighbour = KVPair.Key;
 
 		if (CloseSet.Contains(UndiscoveredNeighbour)) continue;
-		//If we cant pass through the tile, dont consider it a valid tile for a path
-		if (!Agent->CanPassThroughTile(UndiscoveredNeighbour)) continue;
+		//If we cant pass through the tile because it is occupied, dont consider it a valid tile for a path
+		if (!Agent->CanPassThroughTile(Current, UndiscoveredNeighbour)) continue;
 
-		int NewCost = GCost[Current] + DistanceHeuristic(Current, UndiscoveredNeighbour);
+		int NewCost = TravelCost[Current] + DistanceHeuristic(Current, UndiscoveredNeighbour);
 
-		if (!GCost.Contains(UndiscoveredNeighbour) || NewCost < GCost[UndiscoveredNeighbour])
+
+		if ((!TravelCost.Contains(UndiscoveredNeighbour) && NewCost <= Agent->Request.MaxCost) || (TravelCost.Contains(UndiscoveredNeighbour) && NewCost < TravelCost[UndiscoveredNeighbour]))
 		{
-			GCost.FindOrAdd(UndiscoveredNeighbour, NewCost);
-			FCost.FindOrAdd(UndiscoveredNeighbour, NewCost + DistanceHeuristic(UndiscoveredNeighbour, Goal));
+			TravelCost.Add(UndiscoveredNeighbour, NewCost);
+			FCost.Add(UndiscoveredNeighbour, NewCost + DistanceHeuristic(UndiscoveredNeighbour, Goal));
+
 
 			if (!OpenSet.Contains(UndiscoveredNeighbour))
 			{
@@ -72,7 +122,7 @@ int32 FAStarHelper::DistanceHeuristic(AGridTile* Probe, AGridTile* Target)
 {
 	//int32 MovementDistance = UGridUtilityLibrary::GetHexDistance(Probe->Coords, Target->Coords);
 
-	return (Probe->GetActorLocation() - Target->GetActorLocation()).Size();
+	return UGridUtilityLibrary::GetHexDistance_FromTiles(Probe, Target);
 }
 
 
@@ -134,7 +184,7 @@ int32 UGridPathFinderAgent::Heuristic_Implementation(AGridTile* From, AGridTile*
 	return GetCost(From, To);
 }
 
-bool UGridPathFinderAgent::CanPassThroughTile_Implementation(AGridTile* Tile)
+bool UGridPathFinderAgent::CanPassThroughTile_Implementation(AGridTile* FromTile, AGridTile* ToTile)
 {
 	return true;
 }
@@ -148,9 +198,20 @@ bool UGridPathFinderAgent::FindPath(const FGridPathFinderRequest InRequest, TArr
 {
 	Request = InRequest;
 
-	if (!Request.IsValid() || !GridActor || !CanStandOnTile_Implementation(Request.Goal))
+	if (!Request.IsValid())
 	{
-		return false;
+		UE_LOG(LogTemp, Log, TEXT("Request invalid"))
+			return false;
+	}
+	if (!GridActor)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Grid invalid"))
+			return false;
+	}
+	if (!CanStandOnTile_Implementation(Request.Goal))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Goal invalid"))
+			return false;
 	}
 
 	Path.Reset();
@@ -210,22 +271,34 @@ void UGridPathFinderAgent::GetReachableTiles(const FGridPathFinderRequest InRequ
 	Request = InRequest;
 
 	Result.Reset();
-	Result.Add(Request.Start);
 
-	for (int i = 0; i < Result.Num(); i++)
-	{
-		for (auto&& KVPair : Result[i]->ConnectedTiles)
-		{
-			AGridTile* Neighbour = KVPair.Key;
-			FGridPathFinderRequest tempRequest = InRequest;
-			tempRequest.Goal = Neighbour;
 
-			if (IsReachable_Implementation(tempRequest))
-			{
-				Result.AddUnique(Neighbour);
-			}
-		}
-	}
+	TArray<AGridTile*> OpenSet, ClosedSet;
+	OpenSet.Add(Request.Start);
+
+	FWidthSearchHelper Helper(InRequest.Start, GridActor, this);
+
+	//Step until theres no more reachable tiles
+	while (Helper.Step());
+
+	Helper.GetAllReachableTiles(Result);
+
+	//for (int i = 0; i < Result.Num(); i++)
+	//{
+	//	TArray<AGridTile*> Neighbours;
+	//	Result[i]->GetNeighbours(Neighbours);
+
+	//	for (AGridTile* Neighbour : Neighbours)
+	//	{
+	//		FGridPathFinderRequest tempRequest = InRequest;
+	//		tempRequest.Goal = Neighbour;
+
+	//		if (IsReachable_Implementation(tempRequest))
+	//		{
+	//			Result.AddUnique(Neighbour);
+	//		}
+	//	}
+	//}
 }
 
 FGridPathFinderRequest::FGridPathFinderRequest()
@@ -241,12 +314,46 @@ bool FGridPathFinderRequest::IsValid()
 	return (Start && Goal);
 }
 
-bool UGridMovementAgent::CanPassThroughTile_Implementation(AGridTile* Tile)
+#pragma optimize( "", on )
+
+void UGridPathFinderAgent::JumpingRequired_Implementation(AGridTile* From, AGridTile* To, bool& JumpingRequired, float& UpperBound, bool bDrawDebug)
 {
-	return GMC->CanPassTile(Tile);
+	FConnectedTileData* ConnectionData = From->ConnectedTiles.Find(To);
+	if (ConnectionData)
+	{
+		JumpingRequired = ConnectionData->bRequiresJump;
+	}
+}
+
+
+#pragma optimize( "", off )
+
+bool UGridMovementAgent::CanPassThroughTile_Implementation(AGridTile* FromTile, AGridTile* ToTile)
+{
+	bool ret = true;
+	//Check for occupation 
+	ret = ret && (ToTile->GetOccupyingUnit() == nullptr || ToTile->GetOccupyingUnit() == Request.Sender);
+	////Check for ground incline
+	//ret = ret && (Tile->GetGroundNormalAngle() <= GMC->MaxWalkableSlopeIncline);
+
+	
+	return ret;
 }
 
 bool UGridMovementAgent::CanStandOnTile_Implementation(AGridTile* Tile)
 {
-	return true; //(Tile->GetOccupyingUnit() == nullptr || Tile->GetOccupyingUnit() == Request.Sender);
+	bool ret = true;
+	//Check for occupation 
+	ret = ret && (Tile->GetOccupyingUnit() == nullptr || Tile->GetOccupyingUnit() == Request.Sender);
+	////Check for ground incline
+	//ret = ret && (Tile->GetGroundNormalAngle() <= GMC->MaxWalkableSlopeIncline);
+
+	return ret;
+}
+
+bool FAStarHelper::FComparer::operator()(const AGridTile& L, const AGridTile& R) const
+{
+	int32 LFCost = FCost->Contains(&L) ? FCost->FindChecked(&L) : TNumericLimits<int32>::Max();
+	int32 RFCost = FCost->Contains(&R) ? FCost->FindChecked(&R) : TNumericLimits<int32>::Max();
+	return LFCost < RFCost;
 }

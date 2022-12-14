@@ -5,7 +5,7 @@
 #include "GameplayAbilities/GAS_UnitAbilities.h"
 
 // Sets default values
-AGameplayAbilityCharacter::AGameplayAbilityCharacter()
+AUnitBase::AUnitBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -18,27 +18,27 @@ AGameplayAbilityCharacter::AGameplayAbilityCharacter()
 }
 
 // Called when the game starts or when spawned
-void AGameplayAbilityCharacter::BeginPlay()
+void AUnitBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void AGameplayAbilityCharacter::Tick(float DeltaTime)
+void AUnitBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
 // Called to bind functionality to input
-void AGameplayAbilityCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AUnitBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
 
-void AGameplayAbilityCharacter::InitializeAttributes_Implementation()
+void AUnitBase::InitializeAttributes_Implementation()
 {
 	if (AbilitySystemComponent && DefaultAttributeSetter)
 	{
@@ -54,7 +54,7 @@ void AGameplayAbilityCharacter::InitializeAttributes_Implementation()
 	}
 }
 
-void AGameplayAbilityCharacter::GiveAbilities()
+void AUnitBase::GiveAbilities()
 {
 	if (HasAuthority() && AbilitySystemComponent)
 	{
@@ -68,7 +68,7 @@ void AGameplayAbilityCharacter::GiveAbilities()
 	}
 }
 
-void AGameplayAbilityCharacter::OnRep_PlayerState()
+void AUnitBase::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 
@@ -80,7 +80,7 @@ void AGameplayAbilityCharacter::OnRep_PlayerState()
 }
 
 
-void AGameplayAbilityCharacter::PossessedBy(AController* NewController)
+void AUnitBase::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
@@ -91,7 +91,7 @@ void AGameplayAbilityCharacter::PossessedBy(AController* NewController)
 	GiveAbilities();
 }
 
-UAbilitySystemComponent* AGameplayAbilityCharacter::GetAbilitySystemComponent() const
+UAbilitySystemComponent* AUnitBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }

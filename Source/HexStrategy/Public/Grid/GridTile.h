@@ -130,7 +130,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Tile State")
 		void ResetTileState(const UObject* Agent);
 	UFUNCTION(BlueprintPure, Category = "Tile State")
-		ETileDisplayState GetDisplayState() { return ETileDisplayState::Default; }
+		ETileDisplayState GetDisplayState() { return DisplayState.GetTileState(); }
 
 	void UpdateTile();
 
