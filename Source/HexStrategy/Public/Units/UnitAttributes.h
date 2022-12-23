@@ -102,7 +102,7 @@ public:
 	//The unit attributes need to be editanywhere so that premade unit data assets 
 	//can be configured
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		FUnitAttribute Vitality;
+		FUnitAttribute Vigor;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FUnitAttribute Ferocity;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -110,10 +110,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FUnitAttribute Cunning;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		FUnitAttribute Stability;
+		FUnitAttribute Endurance;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FUnitAttribute Resilience;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FUnitAttribute Swiftness;
-	//Luck? RNG professions might be fun
+	//Luck/Fortune? RNG professions might be fun
 };

@@ -11,6 +11,8 @@ class UUnitAbilityVisualizer : public UObject
 public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta=(ExposeOnSpawn))
 		AActor* Owner;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta = (ExposeOnSpawn))
+		TSubclassOf<class UGAS_UnitAbility> AbilityClass;
 
 public:
 	//Visualization

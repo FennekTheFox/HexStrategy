@@ -35,6 +35,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")
 		TSubclassOf<UUnitAbilityVisualizer> VisualizerClass;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")
+		TMap<FName, float> ResourceCost;
+
+
+
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Ability Settings")
 		bool bCanOnlyBeExecutedByOwner = true;

@@ -3,6 +3,9 @@
 
 #include "GameplayAbilities/GameplayAbilityCharacter.h"
 #include "GameplayAbilities/GAS_UnitAbilities.h"
+#include "Units/UnitData.h"
+#include "AbilitySystemComponent.h"
+#include "../Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/AbilitySystemBlueprintLibrary.h"
 
 // Sets default values
 AUnitBase::AUnitBase()
@@ -10,18 +13,51 @@ AUnitBase::AUnitBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	AbilitySystemComponent = CreateDefaultSubobject<UGAS_AbilitySystemComponent>("Ability System Component");
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+	ASC = CreateDefaultSubobject<UGAS_AbilitySystemComponent>("Ability System Component");
+	ASC->SetIsReplicated(true);
+	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
-	Attributes = CreateDefaultSubobject<UGAS_UnitAttributeSet>("Attributes");
+
+	//GameplayAttributes = CreateDefaultSubobject<UGAS_UnitAttributeSet>("Attributes");
+	//AbilitySystemComponent->AddAttributeSetSubobject(GameplayAttributes.Get());
+
+	NetUpdateFrequency = 100.0f;
+}
+
+void AUnitBase::PostInitializeComponents()
+{
+	InitializeAbilitySystem();
+
+	Super::PostInitializeComponents();
 }
 
 // Called when the game starts or when spawned
 void AUnitBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		for (TSubclassOf<UGameplayEffect> GE : DefaultOnTurnStartGEs)
+		{
+			UGameplayEffect* newGE = NewObject<UGameplayEffect>(this, GE);
+			InternalGEs.Add(newGE);
+			OnTurnStartGEs.Add(UAbilitySystemBlueprintLibrary::MakeSpecHandle(newGE, this, this, 1.0f));
+		}
+	}
 	
+}
+
+void AUnitBase::InitializeAbilitySystem()
+{
+	check(IsValid(ASC));
+
+	// Initialize ASC on this Actor
+	ASC->InitAbilityActorInfo(this, this);
+
+	InitializeAttributes();
+
+
 }
 
 // Called every frame
@@ -40,31 +76,46 @@ void AUnitBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AUnitBase::InitializeAttributes_Implementation()
 {
-	if (AbilitySystemComponent && DefaultAttributeSetter)
+	if (ASC && Unit)
 	{
-		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-		EffectContext.AddSourceObject(this);
+		ASC->AddSet<UGAS_UnitAttributeSet>();
 
-		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeSetter, 1, EffectContext);
+		ASC->SetNumericAttributeBase(UGAS_UnitAttributeSet::GetMaxHealthAttribute(), Unit->Attributes.Vigor.GetEffectiveValue() * 10.f);
+		ASC->SetNumericAttributeBase(UGAS_UnitAttributeSet::GetCurrentHealthAttribute(), Unit->Attributes.Vigor.GetEffectiveValue() * 10.f);
+		ASC->SetNumericAttributeBase(UGAS_UnitAttributeSet::GetPhysicalAttackAttribute(), Unit->Attributes.Ferocity.GetEffectiveValue() * 10.f);
+		ASC->SetNumericAttributeBase(UGAS_UnitAttributeSet::GetPhysicalDefenseAttribute(), Unit->Attributes.Endurance.GetEffectiveValue() * 10.f);
 
-		if (SpecHandle.IsValid())
+		ASC->SetNumericAttributeBase(UGAS_UnitAttributeSet::GetMaxBonusActionPointsAttribute(), 3.f);
+		ASC->SetNumericAttributeBase(UGAS_UnitAttributeSet::GetTurnMovementAttribute(), 3 +  Unit->Attributes.Swiftness.GetEffectiveValue()/10.f);
+
+		//GameplayAttributes->InitCurrentHealth(Unit->Attributes.Vigor.GetEffectiveValue() * 10.f);
+		//GameplayAttributes->InitMaxHealth(Unit->Attributes.Vigor.GetEffectiveValue() * 10.f);
+	}
+}
+
+void AUnitBase::NotifyTurnStarted()
+{
+	if (ASC && Unit)
+	{
+		for (FGameplayEffectSpecHandle GE : OnTurnStartGEs)
 		{
-			FActiveGameplayEffectHandle GEHandle =AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			ASC->BP_ApplyGameplayEffectSpecToSelf(GE);
 		}
 	}
 }
 
 void AUnitBase::GiveAbilities()
 {
-	if (HasAuthority() && AbilitySystemComponent)
+	if (HasAuthority() && ASC && !bInitialized)
 	{
 		for (TSubclassOf<UGAS_UnitAbility>& AbilityClass : DefaultAbilities)
 		{
 			//FGameplayAbilitySpec(TSubclassOf<UGameplayAbility> InAbilityClass, int32 InLevel = 1, int32 InInputID = INDEX_NONE, UObject * InSourceObject = nullptr);
 
 			FGameplayAbilitySpec Spec = FGameplayAbilitySpec(AbilityClass, 1, static_cast<int32>(INDEX_NONE), this);
-			AbilitySystemComponent->GiveAbility(Spec);
+			ASC->GiveAbility(Spec);
 		}
+		bInitialized = true;
 	}
 }
 
@@ -85,7 +136,7 @@ void AUnitBase::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	//Server GAS init
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	ASC->InitAbilityActorInfo(this, this);
 
 	InitializeAttributes();
 	GiveAbilities();
@@ -93,6 +144,6 @@ void AUnitBase::PossessedBy(AController* NewController)
 
 UAbilitySystemComponent* AUnitBase::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	return ASC;
 }
 

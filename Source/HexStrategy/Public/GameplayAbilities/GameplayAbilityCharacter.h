@@ -11,6 +11,8 @@
 #include "Units/Affiliation.h"
 #include "GameplayAbilityCharacter.generated.h"
 
+
+
 UCLASS(BlueprintType, Blueprintable)
 class HEXSTRATEGY_API AUnitBase : public APaperCharacter, public IAbilitySystemInterface
 {
@@ -22,17 +24,21 @@ public:
 
 	//BEGIN Gameplay Ability System functionality
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
-		class UGAS_AbilitySystemComponent* AbilitySystemComponent;
+		class UGAS_AbilitySystemComponent* ASC;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<TSubclassOf<UGameplayEffect>> DefaultOnTurnStartGEs;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<FGameplayEffectSpecHandle> OnTurnStartGEs;
 	/*
 	* The gameplay attributes of the unit
-	*/
+	*//*
 	UPROPERTY()
-		class UGAS_UnitAttributeSet* Attributes;
+		TObjectPtr<UGAS_UnitAttributeSet> GameplayAttributes;*/
 	/*
 	* The Gameplay Effect class used to initialise this units attributes
 	*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS");
-		class TSubclassOf<class UGameplayEffect> DefaultAttributeSetter;
+	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS");
+	//	class TSubclassOf<class UGameplayEffect> DefaultAttributeSetter;
 	/*
 	* The list of abilities this character has by default
 	*/
@@ -56,6 +62,9 @@ public:
 			FUnitAffiliation Affiliation {
 			EUnitAffiliation::Neutral0
 	};
+
+	void PostInitializeComponents() override;
+
 	//END Unit functionality
 
 
@@ -64,6 +73,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void InitializeAbilitySystem();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -71,8 +82,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 		void InitializeAttributes();
+	UFUNCTION(BlueprintCallable)
+		void NotifyTurnStarted();
 	virtual void GiveAbilities();
 
 	virtual void OnRep_PlayerState() override;
@@ -81,6 +94,8 @@ public:
 
 
 private:
+	UPROPERTY()
+		TArray<UGameplayEffect*> InternalGEs;
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
+	bool bInitialized = false;
 };

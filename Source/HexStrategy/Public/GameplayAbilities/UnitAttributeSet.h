@@ -28,12 +28,21 @@ public:
 	
 	
 	//Unit Health
-	UPROPERTY(BlueprintReadOnly, CategorY="Attributes", ReplicatedUsing = OnRep_Health)
-	FGameplayAttributeData Health;
-	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, Health);
+	UPROPERTY(BlueprintReadOnly, CategorY="Attributes", ReplicatedUsing = OnRep_MaxHealth)
+	FGameplayAttributeData MaxHealth;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, MaxHealth);
 
 	UFUNCTION()
-	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
+	virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
+
+
+	//Unit Current Health
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_CurrentHealth)
+		FGameplayAttributeData CurrentHealth;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, CurrentHealth);
+
+	UFUNCTION()
+		virtual void OnRep_CurrentHealth(const FGameplayAttributeData& OldHealth);
 
 
 	//Unit MP
@@ -45,11 +54,105 @@ public:
 	virtual void OnRep_MP(const FGameplayAttributeData& OldMP);
 
 
-	//Unit Movement resource
-	UPROPERTY(BlueprintReadOnly, CategorY = "Attributes", ReplicatedUsing = OnRep_Movement)
-		FGameplayAttributeData Movement;
-	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, Movement);
+	//Unit Physical Attack
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_PhysicalAttack)
+		FGameplayAttributeData PhysicalAttack;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, PhysicalAttack);
 
 	UFUNCTION()
-	virtual void OnRep_Movement(const FGameplayAttributeData& OldMovement);
+		virtual void OnRep_PhysicalAttack(const FGameplayAttributeData& OldPhysicalAttack);
+
+
+	//Unit Magical Attack
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_MagicAttack)
+		FGameplayAttributeData MagicAttack;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, MagicAttack);
+
+	UFUNCTION()
+		virtual void OnRep_MagicAttack(const FGameplayAttributeData& OldMagicAttack);
+
+
+	//PhysicalDefense
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_PhysicalDefense)
+		FGameplayAttributeData PhysicalDefense;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, PhysicalDefense);
+
+	UFUNCTION()
+		virtual void OnRep_PhysicalDefense(const FGameplayAttributeData& OldPhysicalDefense);
+
+
+	//Template
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_MagicDefense)
+		FGameplayAttributeData MagicDefense;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, MagicDefense);
+
+	UFUNCTION()
+		virtual void OnRep_MagicDefense(const FGameplayAttributeData& OldMagicDefense);
+
+
+
+
+
+
+
+	//Action Points (Turn Resources)
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_ActionPoints)
+		FGameplayAttributeData ActionPoints;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, ActionPoints);
+
+	UFUNCTION()
+		virtual void OnRep_ActionPoints(const FGameplayAttributeData& OldActionPoints);
+
+
+	//BonusAction Points (Turn Resources)
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_BonusActionPoints)
+		FGameplayAttributeData BonusActionPoints;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, BonusActionPoints);
+
+	UFUNCTION()
+		virtual void OnRep_BonusActionPoints(const FGameplayAttributeData& OldBonusActionPoints);
+
+
+	//MaxBonusAction Points (Turn Resources)
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_MaxBonusActionPoints)
+		FGameplayAttributeData MaxBonusActionPoints;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, MaxBonusActionPoints);
+
+	UFUNCTION()
+		virtual void OnRep_MaxBonusActionPoints(const FGameplayAttributeData& OldBonusActionPoints);
+
+
+	////Template
+	//UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_)
+	//	FGameplayAttributeData ;
+	//ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, );
+
+	//UFUNCTION()
+	//	virtual void OnRep_(const FGameplayAttributeData& Old);
+
+
+
+	//Unit Movement resource
+	UPROPERTY(BlueprintReadOnly, CategorY = "Attributes", ReplicatedUsing = OnRep_TurnMovement)
+		FGameplayAttributeData TurnMovement;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, TurnMovement);
+
+	UFUNCTION()
+		virtual void OnRep_TurnMovement(const FGameplayAttributeData& OldMovement);
+
+
+
+
+	//Unit Movement resource
+	UPROPERTY(BlueprintReadOnly, CategorY = "Attributes", ReplicatedUsing = OnRep_AvailableMovement)
+		FGameplayAttributeData AvailableMovement;
+	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, AvailableMovement);
+
+	UFUNCTION()
+	virtual void OnRep_AvailableMovement(const FGameplayAttributeData& OldMovement);
+
+
+
+	void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+
 };

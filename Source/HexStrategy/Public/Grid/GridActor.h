@@ -102,6 +102,8 @@ public:
 		FVector GetCoordinateWorldCenter(int32 x, int32 y);
 	UFUNCTION(BlueprintPure)
 		AGridTile* GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied = false);
+	UFUNCTION(BlueprintPure)
+		void GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<AGridTile*>& OutTiles);
 
 private:
 	void BakeConnectedTiles(int x, int y);
@@ -109,4 +111,7 @@ private:
 	void CreateTilesAtCoordinates(int x, int y);
 	void CleanUpGrid();
 	void RegenerateGrid();
+	
+
+
 };

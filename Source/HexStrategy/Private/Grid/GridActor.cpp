@@ -8,6 +8,17 @@
 
 #define SQRT_THREE_HALVED 0.866f
 
+static const  TArray<FIntVector> AdjacentTileDirections =
+{
+FIntVector(1, 0, 0),
+FIntVector(-1, 0, 0),
+FIntVector(0, 1, 0),
+FIntVector(0, -1, 0),
+FIntVector(-1, 1, 0),
+FIntVector(1, -1, 0)
+};
+
+
 AGridActor::AGridActor()
 {
 	//PrimaryActorTick.bCanEverTick = true;
@@ -105,7 +116,7 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 		h++;
 	}
 
-	if(ret)
+	if (ret)
 		return ret;
 
 	//If we dont find one with the closest xy coordinates, persue a brute force 
@@ -126,15 +137,47 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 	return ret;
 }
 
-const  TArray<FIntVector> AdjacentTileDirections =
+
+void AGridActor::GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<AGridTile*>& OutTiles)
 {
-FIntVector(1, 0, 0),
-FIntVector(-1, 0, 0),
-FIntVector(0, 1, 0),
-FIntVector(0, -1, 0),
-FIntVector(-1, 1, 0),
-FIntVector(1, -1, 0)
-};
+	if (ensure(Origin))
+	{
+		OutTiles.Reset();
+
+		TArray<FIntVector> OpenCoords;
+
+		FIntVector OriginCoords = Origin->Coordinates;
+
+		//Seed all tiles with the fitting distance range as open
+		for (int x = -1 * Range.Max; x <= Range.Max; x++)
+		{
+			for (int y = -Range.Max; y <= Range.Max; y++)
+			{
+				FIntVector SeedCoords(OriginCoords.X + x, OriginCoords.Y + y, 0);
+				int32 dist = UGridUtilityLibrary::GetHexDistance_FromCoords(OriginCoords, SeedCoords);
+
+				if (dist <= Range.Max && dist >= Range.Min)
+				{
+					OpenCoords.Add(SeedCoords);
+				}
+			}
+		}
+
+		//While we got open tiles to process
+		for (auto It = OpenCoords.CreateIterator(); It; It++)
+		{
+			FIntVector Current_Coords = *It;
+
+			//Discover all tiles;
+			//Iterate over layers of the current coordinates;
+			for (int h = 0; AGridTile** TilePtr = GridTiles.Find(FIntVector(Current_Coords.X, Current_Coords.Y, h)); h++)
+			{
+				AGridTile* pvt = *TilePtr;
+				OutTiles.Add(pvt);
+			}
+		}
+	}
+}
 
 void AGridActor::BakeConnectedTiles(int x, int y)
 {
@@ -149,8 +192,8 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 		AGridTile* Tile = *TilePtr;
 
 		//Check up and down tiles
-		AGridTile** UpTilePtr = GridTiles.Find(FIntVector(x, y, z+1));
-		Tile->UpTile = (UpTilePtr? *UpTilePtr : nullptr);
+		AGridTile** UpTilePtr = GridTiles.Find(FIntVector(x, y, z + 1));
+		Tile->UpTile = (UpTilePtr ? *UpTilePtr : nullptr);
 		AGridTile** DownTilePtr = GridTiles.Find(FIntVector(x, y, z - 1));
 		Tile->DownTile = (DownTilePtr ? *DownTilePtr : nullptr);
 
@@ -158,7 +201,7 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 		for (FIntVector dir : AdjacentTileDirections)
 		{
 			int h = 0;
-			while (AGridTile** AdjacentTilePtr = GridTiles.Find(dir+FIntVector(x, y, h)))
+			while (AGridTile** AdjacentTilePtr = GridTiles.Find(dir + FIntVector(x, y, h)))
 			{
 				AGridTile* AdjacentTile = *AdjacentTilePtr;
 
@@ -183,15 +226,15 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 					bool bCanJump = false;
 
 					bool Obstucted1 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, JumpPeak1, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
-					
+
 					if (!Obstucted1)
 					{
 						bool Obstucted2 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectEnd, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
-					
+
 						if (!Obstucted2)
 						{
 							bool Obstucted3 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, JumpPeak1, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
-						
+
 							if (!Obstucted3)
 							{
 								bCanJump = true;
@@ -204,7 +247,7 @@ void AGridActor::BakeConnectedTiles(int x, int y)
 						FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile);
 						ConnectionData.HeightDifference = (DirectEnd.Z - DirectStart.Z) / HeightIntervals;
 						ConnectionData.bRequiresJump = true;
-						ConnectionData.RequiredJumpHeight = 1 + (Z_Peak- FMath::Min(DirectStart.Z, DirectEnd.Z)) / HeightIntervals;
+						ConnectionData.RequiredJumpHeight = 1 + (Z_Peak - FMath::Min(DirectStart.Z, DirectEnd.Z)) / HeightIntervals;
 					}
 					//Line trace between the two peak points
 
@@ -279,7 +322,7 @@ void AGridActor::CreateTilesAtCoordinates(int x, int y)
 	for (int i = 0; i < Hits.Num(); i++)
 	{
 		//TODO: Test for grids that'd be too close to one another here
-		if((PreviousTileHeight - Hits[i].Location.Z) < MinTileVerticalDistance)
+		if ((PreviousTileHeight - Hits[i].Location.Z) < MinTileVerticalDistance)
 			continue;
 
 		FIntVector Coordinates = FIntVector(x, y, i);

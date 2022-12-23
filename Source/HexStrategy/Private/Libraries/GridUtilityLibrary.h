@@ -20,4 +20,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Grid Utility", meta = (DisplayName = "Get Hex Distance from Tiles", CompactNodeTitle = "Hex Distance"))
 		static int GetHexDistance_FromTiles(AGridTile* A, AGridTile* B);
 
+	UFUNCTION(BlueprintCallable)
+		static bool CommitCheck(UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo);
+
 };

@@ -25,7 +25,6 @@ enum EGridMovementState
 };
 
 
-
 UCLASS(ClassGroup = (Grid), Blueprintable, meta = (BlueprintSpawnableComponent))
 class UGridMovementComponent : public UActorComponent//, public IGridActionComponent
 {
@@ -134,7 +133,11 @@ protected:
 
 
 private:
-	int32 UsedMovement = 0;
+	//int32 UsedMovement = 0;
+	int32 GetAvailableMovement();
+	void DecrementAvailableMovement();
+	UPROPERTY()
+		TSubclassOf<UGameplayEffect> DecrementMovementEffectClass;
 
 	FVector Bounds, Origin;
 	bool bInMotion = false;
@@ -161,6 +164,7 @@ private:
 protected:
 	void OnRegister() override;
 	void OnUnregister() override;
+	void OnMovementCompleted();
 
 private:
 	FGameplayAbilitySpecHandle MoveAbilityHandle;

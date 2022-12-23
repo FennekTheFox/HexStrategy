@@ -1,13 +1,9 @@
 #include "HexStrategyGameInstance.h"
+#include "GameFileData.h"
 
 
-void UHexStrategyGameInstance::SetUsedPlayerData(ULocalPlayerData* NewPlayerData)
+void UHexStrategyGameInstance::SetUsedPlayerData(UGameFileData* NewPlayerData)
 {
 	LocalPlayerData = NewPlayerData;
-	LocalPlayerData->LoadData();
-}
-
-void ULocalPlayerData::LoadData()
-{
-	//1) Unload the current environment leve
+	//LocalPlayerData->LoadData();
 }

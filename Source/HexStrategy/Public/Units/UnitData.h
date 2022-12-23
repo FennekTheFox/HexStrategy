@@ -3,6 +3,8 @@
 #include "Races.h"
 #include "UnitAttributes.h"
 #include "Affiliation.h"
+#include "UnitEquipment.h"
+#include "UnitInventory.h"
 
 #include "UnitData.generated.h"
 
@@ -63,6 +65,13 @@ public:
 	//The units attributes
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes")
 		FUnitAttributeBlock Attributes;
+
+	/*The unit's equiped items*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+		FUnitEquipment UnitEquippedItems;
+	/*The unit's carried items*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+		FUnitInvenotry UnitInventory;
 
 
 

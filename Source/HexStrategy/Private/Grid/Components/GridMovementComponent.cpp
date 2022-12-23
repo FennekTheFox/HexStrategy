@@ -7,6 +7,10 @@
 //#include "Grid/Actors/GridUnit.h"
 #include "Curves/CurveFloat.h"
 #include "GameplayAbilities/GAS_UnitAbilities.h"
+#include "../Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/AbilitySystemGlobals.h"
+#include "GameplayTagContainer.h"
+#include "../Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/AbilitySystemBlueprintLibrary.h"
+#include "GameplayAbilities/UnitAttributeSet.h"
 
 
 
@@ -32,10 +36,16 @@ UGridMovementComponent::UGridMovementComponent()
 		JumpCurve_Vertical = JCV_Finder.Object;
 	}
 
-	static ConstructorHelpers::FClassFinder<UGAS_UnitAbility> MoveAbilityFinder(TEXT("/Script/Engine.Blueprint'/Game/Blueprint/Abilities/GA_GridMove.GA_GridMove_C'"));
+	static ConstructorHelpers::FClassFinder<UGAS_UnitAbility> MoveAbilityFinder(TEXT("/Script/Engine.Blueprint'/Game/Blueprint/Abilities/GameplayAbilities/GridMove/GA_GridMove.GA_GridMove_C'"));
 	if (ensure(MoveAbilityFinder.Succeeded()))
 	{
 		MoveAbilityClass = MoveAbilityFinder.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<UGameplayEffect> DecrementMovementFinder(TEXT("/Script/Engine.Blueprint'/Game/Blueprint/Abilities/GameplayAbilities/GridMove/GE_GridMoveCost.GE_GridMoveCost_C'"));
+	if (ensure(DecrementMovementFinder.Succeeded()))
+	{
+		DecrementMovementEffectClass = DecrementMovementFinder.Class;
 	}
 }
 
@@ -91,8 +101,8 @@ bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
 	if (CurrentTile == TargetTile)
 	{
 		//Why move, when we're already there
-		OnComplete.Broadcast(this);
-		OnComplete.Clear();
+
+		OnMovementCompleted();
 		return true;
 	}
 
@@ -102,7 +112,7 @@ bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
 	Request.Sender = GetOwner();
 	Request.Start = CurrentTile;
 	Request.Goal = TargetTile;
-	Request.MaxCost = MovementRadius - UsedMovement;
+	Request.MaxCost = GetAvailableMovement();
 
 	if (PathFinder->FindPath(Request, Path))
 	{
@@ -136,7 +146,7 @@ bool UGridMovementComponent::GetPathTo(AGridTile* TargetTile, TArray<AGridTile*>
 	Request.Sender = GetOwner();
 	Request.Start = CurrentTile;
 	Request.Goal = TargetTile;
-	Request.MaxCost = MovementRadius - UsedMovement;
+	Request.MaxCost = GetAvailableMovement();
 
 	return PathFinder->FindPath(Request, OutPath);
 }
@@ -175,7 +185,7 @@ bool UGridMovementComponent::CanMoveToTile(AGridTile* TargetTile, TArray<AGridTi
 		Request.Sender = GetOwner();
 		Request.Start = CurrentTile;
 		Request.Goal = TargetTile;
-		Request.MaxCost = MovementRadius - UsedMovement;
+		Request.MaxCost = GetAvailableMovement();
 
 		PathFinder->FindPath(Request, PotentialPath);
 
@@ -233,7 +243,7 @@ bool UGridMovementComponent::LetsThisPass(UGridMovementComponent* InGMC)
 
 void UGridMovementComponent::GetAllReachableTiles(TArray<AGridTile*>& ReachableTiles)
 {
-	if (bReachableTilesCached && ReachableTilesCacheOrigin == CurrentTile && CacheMovementRadius == MovementRadius - UsedMovement)
+	if (bReachableTilesCached && ReachableTilesCacheOrigin == CurrentTile && CacheMovementRadius == GetAvailableMovement())
 	{
 		ReachableTiles = CachedReachableTiles;
 	}
@@ -247,11 +257,11 @@ void UGridMovementComponent::GetAllReachableTiles(TArray<AGridTile*>& ReachableT
 		Request.Sender = GetOwner();
 		Request.Start = CurrentTile;
 		Request.Goal = nullptr;
-		Request.MaxCost = MovementRadius - UsedMovement;
+		Request.MaxCost = GetAvailableMovement();
 
 		PathFinder->GetReachableTiles(Request, ReachableTiles);
 
-		CacheMovementRadius = MovementRadius - UsedMovement;
+		CacheMovementRadius = GetAvailableMovement();
 		bReachableTilesCached = true;
 		ReachableTilesCacheOrigin = CurrentTile;
 		CachedReachableTiles = ReachableTiles;
@@ -295,6 +305,7 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Leave tile success"))
 
+		DecrementAvailableMovement();
 		//Set to travel to next tile
 		CurrentTileLoc = CurrentTile->GetActorLocation();
 		NextTile = PathToTravel.Pop();
@@ -318,6 +329,23 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 }
 
 
+int32 UGridMovementComponent::GetAvailableMovement()
+{
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
+	bool bFound;
+	int32 val = ASC->GetGameplayAttributeValue(UGAS_UnitAttributeSet::GetAvailableMovementAttribute(), bFound);
+
+	return (bFound ? val : 0.f);
+}
+
+void UGridMovementComponent::DecrementAvailableMovement()
+{
+	UGameplayEffect* DecrementEffect = NewObject<UGameplayEffect>(this, DecrementMovementEffectClass);
+
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetOwner());
+	ASC->ApplyGameplayEffectToSelf(DecrementEffect, 0.f, FGameplayEffectContextHandle());
+}
+
 void UGridMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	//Check whether motion needs to be progressed.
@@ -338,8 +366,7 @@ void UGridMovementComponent::TickComponent(float DeltaTime, enum ELevelTick Tick
 				bInMotion = false;
 				CurrentTile->OccupyTile(GetOwner());
 				MovementState = Idle;
-				OnComplete.Broadcast(this);
-				OnComplete.Clear();
+				OnMovementCompleted();
 			}
 		}
 		else
@@ -466,4 +493,24 @@ void UGridMovementComponent::OnUnregister()
 	Super::OnUnregister();
 
 	PathFinder = nullptr;
+}
+
+void UGridMovementComponent::OnMovementCompleted()
+{
+	if (GetOwner())
+	{
+		//Notify the owner via gameplay event
+		UAbilitySystemComponent* AbilitySystemComponent = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
+		if (AbilitySystemComponent != nullptr && IsValidChecked(AbilitySystemComponent))
+		{
+			FGameplayEventData Payload;
+			Payload.OptionalObject = this;
+
+			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+			AbilitySystemComponent->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(TEXT("GridMovement.OnComplete")), &Payload);
+		}
+	}
+
+	OnComplete.Broadcast(this);
+	OnComplete.Clear();
 }
