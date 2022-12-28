@@ -51,6 +51,8 @@ public:
 	//The units full name
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
 		FText UnitName;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
+		FName UnitID;
 
 	//The class template which this unit uses
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance")

@@ -29,6 +29,18 @@ public:
 		TArray<TSubclassOf<UGameplayEffect>> DefaultOnTurnStartGEs;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
 		TArray<FGameplayEffectSpecHandle> OnTurnStartGEs;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<TSubclassOf<UGameplayEffect>> DefaultOnTurnEndGEs;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<FGameplayEffectSpecHandle> OnTurnEndGEs;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<TSubclassOf<UGameplayEffect>> DefaultOnEncounterStartGEs;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<FGameplayEffectSpecHandle> OnEncounterStartGEs;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<TSubclassOf<UGameplayEffect>> DefaultOnEncounterEndGEs;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+		TArray<FGameplayEffectSpecHandle> OnEncounterEndGEs;
 	/*
 	* The gameplay attributes of the unit
 	*//*
@@ -84,8 +96,16 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 		void InitializeAttributes();
+
 	UFUNCTION(BlueprintCallable)
 		void NotifyTurnStarted();
+	UFUNCTION(BlueprintCallable)
+		void NotifyTurnEnded();
+	UFUNCTION(BlueprintCallable)
+		void NotifyEncounterStarted();
+	UFUNCTION(BlueprintCallable)
+		void NotifyEncounterEnded();
+
 	virtual void GiveAbilities();
 
 	virtual void OnRep_PlayerState() override;

@@ -44,6 +44,27 @@ void AUnitBase::BeginPlay()
 			InternalGEs.Add(newGE);
 			OnTurnStartGEs.Add(UAbilitySystemBlueprintLibrary::MakeSpecHandle(newGE, this, this, 1.0f));
 		}
+
+		for (TSubclassOf<UGameplayEffect> GE : DefaultOnTurnEndGEs)
+		{
+			UGameplayEffect* newGE = NewObject<UGameplayEffect>(this, GE);
+			InternalGEs.Add(newGE);
+			OnTurnEndGEs.Add(UAbilitySystemBlueprintLibrary::MakeSpecHandle(newGE, this, this, 1.0f));
+		}
+
+		for (TSubclassOf<UGameplayEffect> GE : DefaultOnEncounterStartGEs)
+		{
+			UGameplayEffect* newGE = NewObject<UGameplayEffect>(this, GE);
+			InternalGEs.Add(newGE);
+			OnEncounterStartGEs.Add(UAbilitySystemBlueprintLibrary::MakeSpecHandle(newGE, this, this, 1.0f));
+		}
+
+		for (TSubclassOf<UGameplayEffect> GE : DefaultOnEncounterEndGEs)
+		{
+			UGameplayEffect* newGE = NewObject<UGameplayEffect>(this, GE);
+			InternalGEs.Add(newGE);
+			OnEncounterEndGEs.Add(UAbilitySystemBlueprintLibrary::MakeSpecHandle(newGE, this, this, 1.0f));
+		}
 	}
 	
 }
@@ -103,6 +124,42 @@ void AUnitBase::NotifyTurnStarted()
 		}
 	}
 }
+
+void AUnitBase::NotifyTurnEnded()
+{
+	if (ASC && Unit)
+	{
+		for (FGameplayEffectSpecHandle GE : OnTurnEndGEs)
+		{
+			ASC->BP_ApplyGameplayEffectSpecToSelf(GE);
+		}
+	}
+}
+
+
+void AUnitBase::NotifyEncounterStarted()
+{
+	if (ASC && Unit)
+	{
+		for (FGameplayEffectSpecHandle GE : OnEncounterStartGEs)
+		{
+			ASC->BP_ApplyGameplayEffectSpecToSelf(GE);
+		}
+	}
+}
+
+
+void AUnitBase::NotifyEncounterEnded()
+{
+	if (ASC && Unit)
+	{
+		for (FGameplayEffectSpecHandle GE : OnEncounterEndGEs)
+		{
+			ASC->BP_ApplyGameplayEffectSpecToSelf(GE);
+		}
+	}
+}
+
 
 void AUnitBase::GiveAbilities()
 {

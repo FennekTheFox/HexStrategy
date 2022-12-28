@@ -3,8 +3,6 @@
 #include "ItemBase.h"
 #include "ItemSlot.generated.h"
 
-
-
 USTRUCT(BlueprintType)
 struct FItemSlot
 {
