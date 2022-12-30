@@ -36,6 +36,14 @@ void AUnitBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//We need to duplicate the unit object if its not transient, since we otherwise
+	//override values in the template data assets
+	if (Unit->GetPackage() != GetTransientPackage())
+	{
+		Unit = DuplicateObject<UUnitData>(Unit, GetTransientPackage());
+		Unit->Initialize();
+	}
+
 	if (HasAuthority())
 	{
 		for (TSubclassOf<UGameplayEffect> GE : DefaultOnTurnStartGEs)

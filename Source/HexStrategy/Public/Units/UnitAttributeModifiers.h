@@ -13,6 +13,8 @@ public:
 	//Decides in which order the modifiers get applied, higher priority gets applied first
 	UPROPERTY(BlueprintReadOnly, meta=(ExposeOnSpawn))
 		int32 Priority;
+	UPROPERTY(BlueprintReadOnly, meta = (ExposeOnSpawn))
+		UObject* Source;
 
 public:
 	//Function used to (refcursively) calculate the effective attribute value

@@ -64,6 +64,11 @@ public:
 
 		return ret;
 	}
+
+	int32 GetBaseValue() const
+	{
+		return BaseValue;
+	}
 };
 
 //exposes the FUnitAttribute functions to blueprint. USTRUCT functions when?
@@ -92,6 +97,29 @@ public:
 		return Attribute.GetEffectiveValue();
 	}
 };
+
+USTRUCT(BlueprintType)
+struct FFlatAttributeList
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Vigor;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Ferocity;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Agility;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Cunning;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Endurance;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Resilience;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 Swiftness;
+};
+
 
 USTRUCT(BlueprintType)
 struct FUnitAttributeBlock

@@ -48,6 +48,10 @@ class UUnitData : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	void Initialize();
+	void EquipSlotIfNeeded(FItemSlot& Slot);
+
+public:
 	//The units full name
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
 		FText UnitName;
@@ -75,6 +79,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
 		FUnitInvenotry UnitInventory;
 
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+		TArray<FGameplayAbilitySpec> SlottedAbilities;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+		TArray<FGameplayAbilitySpec> LearnedAbilities;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+		TArray<FGameplayAbilitySpec> EquipmentAbilities;
 
 
 	//The point in time when the unit has been recruited

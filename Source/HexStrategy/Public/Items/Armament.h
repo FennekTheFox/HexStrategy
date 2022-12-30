@@ -14,9 +14,32 @@ enum class EArmamentType : uint8
 };
 
 
+USTRUCT(BlueprintType)
+struct FAttributeScaling
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float VigorScaling = 0.f;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float FerocityScaling = 0.f;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float AgilityScaling = 0.f;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float CunningScaling = 0.f;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float EnduranceScaling = 0.f;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float ResilienceScaling = 0.f;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
+		float SwiftnessScaling = 0.f;
+};
+
+
 /*Armament base class*/
 UCLASS(Abstract, BlueprintType)
-class UArmament : public UEquipableItem
+class UArmament : public UEquippableItem
 {
 	GENERATED_BODY()
 
@@ -26,8 +49,17 @@ public:
 		ItemType = EItemType::Armament;
 	}
 
+	//The type of armament, inherited by the parent class's constructor
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 		EArmamentType ArmamentType {EArmamentType::Invalid};
+
+	//Attribute scalings
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FAttributeScaling AttributeScaling;
+
+	void EquipToUnit_Implementation(UUnitData* Unit) override;
+	void UnequipFromUnit_Implementation(UUnitData* Unit) override;
+
 };
 
 /*Main hand only armaments*/
