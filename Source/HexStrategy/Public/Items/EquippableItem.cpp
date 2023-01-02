@@ -1,11 +1,11 @@
-#include "EquipableItem.h"
+#include "EquippableItem.h"
 
 #include "Units/UnitAttributeModifiers.h"
 #include "Units/UnitData.h"
 #pragma once
 
 
-void UEquipableItem::AddModifierToUnitIfNeeded(int32 Value, FUnitAttribute& AttributeToModify)
+void UEquippableItem::AddModifierToUnitIfNeeded(int32 Value, FUnitAttribute& AttributeToModify)
 {
 	if (Value != 0)
 	{
@@ -18,7 +18,7 @@ void UEquipableItem::AddModifierToUnitIfNeeded(int32 Value, FUnitAttribute& Attr
 }
 
 
-void UEquipableItem::RemoveModifierFromUnitIfNeeded(int32 Value, FUnitAttribute& AttributeToModify)
+void UEquippableItem::RemoveModifierFromUnitIfNeeded(int32 Value, FUnitAttribute& AttributeToModify)
 {
 	if (Value != 0)
 	{
@@ -35,7 +35,7 @@ void UEquipableItem::RemoveModifierFromUnitIfNeeded(int32 Value, FUnitAttribute&
 	}
 }
 
-bool UEquipableItem::UnitFulfillsProficiencyRequirement(UUnitData* Unit)
+bool UEquippableItem::UnitFulfillsProficiencyRequirement(UUnitData* Unit)
 {
 	if (Unit->Attributes.Vigor.GetBaseValue() < ProficiencyRequirements.Vigor) return false;
 	if (Unit->Attributes.Ferocity.GetBaseValue() < ProficiencyRequirements.Ferocity) return false;
@@ -48,7 +48,7 @@ bool UEquipableItem::UnitFulfillsProficiencyRequirement(UUnitData* Unit)
 	return true;
 }
 
-void UEquipableItem::EquipToUnit_Implementation(UUnitData* Unit)
+void UEquippableItem::EquipToUnit_Implementation(UUnitData* Unit)
 {
 	AddModifierToUnitIfNeeded(AttributeModifiers.Vigor, Unit->Attributes.Vigor);
 	AddModifierToUnitIfNeeded(AttributeModifiers.Ferocity, Unit->Attributes.Ferocity);
@@ -58,14 +58,14 @@ void UEquipableItem::EquipToUnit_Implementation(UUnitData* Unit)
 	AddModifierToUnitIfNeeded(AttributeModifiers.Resilience, Unit->Attributes.Resilience);
 	AddModifierToUnitIfNeeded(AttributeModifiers.Swiftness, Unit->Attributes.Swiftness);
 
-	if (UnitFulfillsProficiencyRequirement())
+	if (UnitFulfillsProficiencyRequirement(Unit))
 	{
 		for(auto ProficiencyAbility : ProficiencyAbilities)
 			Unit->EquipmentAbilities.Add(ProficiencyAbility);
 	}
 }
 
-void UEquipableItem::UnequipFromUnit_Implementation(UUnitData* Unit)
+void UEquippableItem::UnequipFromUnit_Implementation(UUnitData* Unit)
 {
 	RemoveModifierFromUnitIfNeeded(AttributeModifiers.Vigor, Unit->Attributes.Vigor);
 	RemoveModifierFromUnitIfNeeded(AttributeModifiers.Ferocity, Unit->Attributes.Ferocity);
@@ -75,7 +75,7 @@ void UEquipableItem::UnequipFromUnit_Implementation(UUnitData* Unit)
 	RemoveModifierFromUnitIfNeeded(AttributeModifiers.Resilience, Unit->Attributes.Resilience);
 	RemoveModifierFromUnitIfNeeded(AttributeModifiers.Swiftness, Unit->Attributes.Swiftness);
 
-	if (UnitFulfillsProficiencyRequirement())
+	if (UnitFulfillsProficiencyRequirement(Unit))
 	{
 		for (auto ProficiencyAbility : ProficiencyAbilities)
 			Unit->EquipmentAbilities.Add(ProficiencyAbility);

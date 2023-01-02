@@ -8,37 +8,19 @@
 
 #include "UnitData.generated.h"
 
-//The instance describing the appearance of a unit portrait
-UCLASS(BlueprintType)
-class UPortraitData : public UDataAsset
+
+USTRUCT(BlueprintType)
+struct FUnitProfessionProgress
 {
 	GENERATED_BODY()
 
 public:
-	//The base texture for the portrait. This contains the basic pose
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* BaseTexture;
-	//The hair style to be layered onto the base texture
+		int32 Level = 1;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* HairStyleTexture;
-	//The attire to be layered o top of the base texture
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* AttireTextures;
-	//The the eyes to be used on the portrait		
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		UTexture2D* PotraitEyes;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* SkinMask;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* HairMask;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* EyeWhitesMask;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		UTexture2D* PupilsMask;
-
-
+		int32 ProfessionExp;
 };
+
 
 //The data class that contains all the information about a unit relating to 
 //it's appearance and abilities
@@ -59,39 +41,57 @@ public:
 		FName UnitID;
 
 	//The class template which this unit uses
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance")
-		class UUnitRaceTemplates* UnitRace;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta=(AllowedClasses="UnitRaceTemplates"))
+		FSoftObjectPath UnitRace;
 	//The class template which this unit uses
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance")
-		class UUnitProfession* UnitProfession;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta = (AllowedClasses = "UnitProfession"))
+		FSoftObjectPath UnitProfession;
 	//The specific values used to tweak racial appearance
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance")
-		FRaceAttributes RaceAttributes;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)
+		FUnitAppearanceAttributes AppearanceAttributes;
 
 	//The units attributes
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes", SaveGame)
 		FUnitAttributeBlock Attributes;
 
 	/*The unit's equiped items*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items", SaveGame)
 		FUnitEquipment UnitEquippedItems;
 	/*The unit's carried items*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items", SaveGame)
 		FUnitInvenotry UnitInventory;
 
+	/*The number of experience points earned by this unit*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Progression", SaveGame)
+		int32 UnitExperiencePoints;
+	/*The list of levels and exp gained for all professions of this unit*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Progression", SaveGame)
+		TMap<FName, FUnitProfessionProgress> UnitProfessionProgress;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
-		TArray<FGameplayAbilitySpec> SlottedAbilities;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
-		TArray<FGameplayAbilitySpec> LearnedAbilities;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
-		TArray<FGameplayAbilitySpec> EquipmentAbilities;
+	/*The Abilities the unit has slotted as its active abilities*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
+		TArray<FGameplayAbilitySpecDef> SlottedAbilities;
+	/*The Abilities the unit has learned*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
+		TArray<FGameplayAbilitySpecDef> LearnedAbilities;
+	/*The list of abilities granted to the unit by its equipment*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
+		TArray<FGameplayAbilitySpecDef> EquipmentAbilities;
+
 
 
 	//The point in time when the unit has been recruited
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta", SaveGame)
 		FDateTime JoinedDateTime;
 	//The point in time when the unit has last been used
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta", SaveGame)
 		FDateTime LastUsedDateTime;
+
+
+public:
+
+	UFUNCTION(BlueprintPure, Category = "UnitData")
+		class UUnitRaceTemplates* GetRace();
+	UFUNCTION(BlueprintPure, Category = "UnitData")
+		class UUnitProfession* GetProfession();
 };

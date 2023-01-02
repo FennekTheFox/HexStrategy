@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EquipableItem.h"
+#include "EquippableItem.h"
 #include "Armament.generated.h"
 
 UENUM(BlueprintType)

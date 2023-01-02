@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Races.h"
-
+#include "UnitBodyType.h"
+#include "FlipbookSuits.h"
+#include "GameplayAbilitySpec.h"
+#include "UnitAttributes.h"
 
 #include "Professions.generated.h"
 
@@ -18,13 +20,41 @@ class UUnitProfession : public UDataAsset
 	}
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	/*Localizable name of this profession.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession")
 		FText ProfessionLabel;
+	/*Serializable ID of this profession.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession")
+		FName ProfessionID;
+	/*The profession's icon.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession")
+		UTexture2D* ProfessionIcon;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	/*Flag that indicates whether or not this profession requires any other professions to be leveled*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Setup", meta = (ClampMin = 10, ClampMax = 50))
+		int32 MaxProfessionLevel;
+	/*The list of abilities this profession grants. Upon leveling the profession a unit is granted the ability with the corresponding index.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Setup")
+		TArray<FGameplayAbilitySpecDef> AbilityList;
+	/*Flag to denote base professions that dont require other professions*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Setup")
+		bool bIsBaseProfession;
+	/*List of professions required to level this one.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Setup", meta = (EditCategory="bIsBaseProfession"))
+		TMap<class UUnitProfession*, int32> ProfessionRequirements;
+
+	/*The Attribute boni granted to the unit with this profession*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Attributes")
+		FFlatAttributeList ProfessionAttributeBonus;
+	/*The growth rate boni granted to the unit with this profession*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Attributes")
+		FScalarAttributeList ProfessionGrowthRateBonus;
+
+	/*The Attire Flipbook mapping that this profession uses*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Appearance")
 		TMap<EBodyType, USpriteFlipbookSuit*> ProfessionFlipbooks;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	/*Whether or not the attire will hide the hair layer*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Appearance")
 		bool bEquipmentHidesHair = false;
 
 
@@ -43,6 +73,8 @@ private:
 		{
 			ProfessionFlipbooks.FindOrAdd(BT);
 		}
+		AbilityList.SetNum(MaxProfessionLevel);
+
 	}
 
 	//... stuff like skin requirements here

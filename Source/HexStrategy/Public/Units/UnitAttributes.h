@@ -120,6 +120,29 @@ public:
 		int32 Swiftness;
 };
 
+USTRUCT(BlueprintType)
+struct FScalarAttributeList
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Vigor;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Ferocity;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Agility;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Cunning;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Endurance;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Resilience;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		float Swiftness;
+};
+
+
 
 USTRUCT(BlueprintType)
 struct FUnitAttributeBlock

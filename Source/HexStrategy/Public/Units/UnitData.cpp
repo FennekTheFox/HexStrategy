@@ -5,7 +5,7 @@ void UUnitData::EquipSlotIfNeeded(FItemSlot& Slot)
 {
 	if (Slot.ItemData)
 	{
-		UEquipableItem* EqItem = Cast<UEquipableItem>(UnitEquippedItems.MainHandSlot.ItemData);
+		UEquippableItem* EqItem = Cast<UEquippableItem>(UnitEquippedItems.MainHandSlot.ItemData);
 		if (EqItem)
 		{
 			EqItem->EquipToUnit(this);
@@ -13,6 +13,16 @@ void UUnitData::EquipSlotIfNeeded(FItemSlot& Slot)
 	}
 }
 
+
+class UUnitRaceTemplates* UUnitData::GetRace()
+{
+	return Cast<UUnitRaceTemplates>(UnitRace.TryLoad());
+}
+
+class UUnitProfession* UUnitData::GetProfession()
+{
+	return Cast<UUnitProfession>(UnitProfession.TryLoad());
+}
 
 void UUnitData::Initialize()
 {

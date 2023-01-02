@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EquipableItem.h"
+#include "EquippableItem.h"
 #include "Armour.generated.h"
 
 
@@ -20,7 +20,7 @@ enum class EArmourType : uint8
 
 /*Base class for all non-weapon equipable items*/
 UCLASS(Abstract, BlueprintType)
-class UArmour : public UEquipableItem
+class UArmour : public UEquippableItem
 {
 	GENERATED_BODY()
 

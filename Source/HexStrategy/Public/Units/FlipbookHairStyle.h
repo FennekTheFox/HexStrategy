@@ -10,6 +10,10 @@ class UHairStyle : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	//The ID by which the hair style is identified
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		FName HairStyleID;
+
 	//The Flipbook suit used for this hairstyle
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		class USpriteFlipbookSuit* Flipbooks;

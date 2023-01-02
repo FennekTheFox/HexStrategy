@@ -1,19 +1,11 @@
 #pragma once
 
+#include "UnitPortraits.h"
+#include "UnitBodyType.h"
 #include "Races.generated.h"
 
-
-UENUM(BlueprintType)
-enum class EBodyType : uint8
-{
-	Humanoid,
-
-	Count UMETA(Hidden)
-};
-ENUM_RANGE_BY_COUNT(EBodyType, EBodyType::Count);		//Makes the enum iterable
-
 USTRUCT(BlueprintType)
-struct FRaceAttributes
+struct FUnitAppearanceAttributes
 {
 	GENERATED_BODY()
 
@@ -27,9 +19,6 @@ public:
 	//The chosen HairStyle for this unit
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		class UHairStyle* HairStyle;
-	//The chosen portrait data for this object
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		class UPortraitData* PortraitData;
 };
 
 //This data asset class is used to define the possible appearance and ability values that a 
@@ -47,6 +36,11 @@ public:
 	//The body type to be of the race 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		EBodyType RaceBodyType = EBodyType::Humanoid;
+
+
+	//The chosen portrait data for this object
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class UPortraitData* PortraitData;
 
 	//The body type flipbook suit for the race
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)

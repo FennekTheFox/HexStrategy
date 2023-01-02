@@ -48,7 +48,7 @@ struct FDirectionalFlipbookSuit
 {
 	GENERATED_BODY()
 
-		FDirectionalFlipbookSuit()
+	FDirectionalFlipbookSuit()
 	{
 		Refresh();
 	}

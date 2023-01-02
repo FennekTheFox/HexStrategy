@@ -1,3 +1,4 @@
+#include "Armament.h"
 
 void UArmament::EquipToUnit_Implementation(UUnitData* Unit)
 {

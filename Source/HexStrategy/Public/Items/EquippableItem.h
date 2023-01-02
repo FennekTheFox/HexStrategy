@@ -2,14 +2,15 @@
 
 #include "ItemBase.h"
 #include "Units/UnitAttributes.h"
+#include "GameplayAbilitySpec.h"
 
-#include  "EquipableItem.generated.h"
+#include  "EquippableItem.generated.h"
 
 
 
 
 UCLASS(Abstract, BlueprintType)
-class UEquipableItem : public UItemBase
+class UEquippableItem : public UItemBase
 {
 	GENERATED_BODY()
 
@@ -19,7 +20,7 @@ public:
 		FFlatAttributeList ProficiencyRequirements;
 	//ProficiencyBoni
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items")
-		TArray<FGameplayAbilitySpec> ProficiencyAbilities;
+		TArray<FGameplayAbilitySpecDef> ProficiencyAbilities;
 
 
 public:

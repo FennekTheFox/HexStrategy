@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EquipableItem.h"
+#include "EquippableItem.h"
 #include "Accessories.generated.h"
 
 UENUM(BlueprintType)
@@ -14,7 +14,7 @@ enum class EAccessoryType : uint8
 
 /*Base class for all non-weapon equipable items*/
 UCLASS(Abstract, BlueprintType)
-class UAccessory : public UEquipableItem
+class UAccessory : public UEquippableItem
 {
 	GENERATED_BODY()
 
