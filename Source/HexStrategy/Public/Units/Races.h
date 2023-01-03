@@ -4,12 +4,47 @@
 #include "UnitBodyType.h"
 #include "Races.generated.h"
 
+
 USTRUCT(BlueprintType)
-struct FUnitAppearanceAttributes
+struct FColourOption
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FLinearColor Colour = FLinearColor(.5f, .5f, .5f, .7f);
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		float Weight = 1.f;
+};
+
+USTRUCT(BlueprintType)
+struct FHairStypeOption
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		class UHairStyle* Colour;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		float Weight = 1.f;
+};
+
+/*Struct outlining the appearance of a unit
+In combination with the pointer to the race data asset this should be enough to
+deduce both the portrait and the flipbook data*/
+USTRUCT(BlueprintType)
+struct FUnitBodyData
+{
+	GENERATED_BODY()
+
+public:
+	//The class template which this unit uses
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta = (AllowedClasses = "UnitRace"))
+		FSoftObjectPath UnitRace;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (GetOptions = "GetSuperBodyOptions"))
+		FName SuperBodyTypeID;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (GetOptions = "GetSubBodyOptions"))
+		FName SubBodyTypeID;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FLinearColor BodyColor;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -19,12 +54,44 @@ public:
 	//The chosen HairStyle for this unit
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		class UHairStyle* HairStyle;
+
 };
 
-//This data asset class is used to define the possible appearance and ability values that a 
-//Race can have.
-UCLASS(BlueprintType, Blueprintable)
-class UUnitRaceTemplates : public UDataAsset
+/*Struct describing the possible body types a race can have*/
+USTRUCT(BlueprintType)
+struct FSubBodyTypeOptions
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FText OptionDisplayName;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FName OptionID;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		class UBodyTypeAppearanceData* Appearance;
+};
+
+/*Struct describing the possible body types a race can have*/
+USTRUCT(BlueprintType)
+struct FSuperBodyTypeOptions
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FText OptionDisplayName;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FName OptionID;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		TArray<FSubBodyTypeOptions> Suboptions;
+};
+
+
+/*Data asset describing the basic characteristics a race can have, both
+gameplay wise and in terms of appearances*/
+UCLASS(BlueprintType)
+class UUnitRace : public UDataAsset
 {
 	GENERATED_BODY()
 
@@ -32,33 +99,49 @@ public:
 	//The localizable name of the race
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FText RaceLabel;
+	//The body type flipbook suit for the race
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		TArray<FSuperBodyTypeOptions> BodyTypeOptions;
+
+public:
+	UFUNCTION(BlueprintPure)
+		UBodyTypeAppearanceData* FindAppearanceData(FName SuperBodyType, FName SubBodyType);
+};
+
+
+//This data asset class is used to define the possible appearance and ability values that a 
+//Race can have.
+UCLASS(BlueprintType, Blueprintable)
+class UBodyTypeAppearanceData : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	/*The sprite flipbook suit used for this appearance data*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class USpriteFlipbookSuit* BodyFlipbookSuit;
+	//The chosen portrait data for this object
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		class UPortraitData* PortraitData;
 
 	//The body type to be of the race 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		EBodyType RaceBodyType = EBodyType::Humanoid;
 
-
-	//The chosen portrait data for this object
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		class UPortraitData* PortraitData;
-
-	//The body type flipbook suit for the race
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		class USpriteFlipbookSuit* BodyFlipbookSuit;
 	//Weighted array to define possible body colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<FLinearColor, float> PossibleBodyColors;
+		TArray<FColourOption> PossibleBodyColors;
 	//Weighted array to define possible Eye colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<FLinearColor, float> PossibleEyeColors;
+		TArray<FColourOption> PossibleEyeColors;
 	//Weighted array to define possible hair colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<FLinearColor, float> PossibleHairColors;
+		TArray<FColourOption> PossibleHairColors;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<UTexture2D*, float> PossiblePortraitEyes;
+		TArray<FColourOption> PossiblePortraitEyes;
 	//The number and distribution for all possible hair styles
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<class UHairStyle*, float> PossibleHairStyles;
+		TArray<FHairStypeOption> PossibleHairStyles;
 
 	//TODO: 
 };

@@ -1,5 +1,5 @@
 #include "HexStrategyGameInstance.h"
-#include "GameFileData.h"
+#include "SaveGame/GameFileData.h"
 
 
 void UHexStrategyGameInstance::SetUsedPlayerData(UGameFileData* NewPlayerData)

@@ -67,6 +67,7 @@ void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
 	//Initiate movement to the closest tile	
 	CurrentTileLoc = GetOwner()->GetActorLocation() - Bounds.Z * FVector::UpVector;
 	NextTile = Grid->GetTileClosestToCoordinates(GetOwner()->GetActorLocation());
+	ensure(NextTile->PreoccupyTile(GetOwner()));
 	NextTileLoc = NextTile->GetActorLocation();
 	NextTile->OccupyTile(GetOwner());
 	MovementDuration = (CurrentTileLoc - NextTileLoc).Size() / MovementSpeed;

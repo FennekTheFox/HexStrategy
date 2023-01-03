@@ -30,6 +30,7 @@ bool AGridTile::OccupyTile(AActor* InOccupyingActor)
 {
 	if (!OccupyingActor)
 	{
+		PreoccupyingActor = nullptr;
 		OccupyingActor = InOccupyingActor;
 		return true;
 	}
@@ -95,12 +96,23 @@ void AGridTile::AbandonTile(AActor* InOccupyingActor)
 
 AActor* AGridTile::GetOccupyingUnit()
 {
-	return OccupyingActor;
+	return (PreoccupyingActor ? PreoccupyingActor : OccupyingActor);
 }
 
 bool AGridTile::GetIsOccupied()
 {
-	return (OccupyingActor != nullptr);
+	return (OccupyingActor != nullptr || PreoccupyingActor != nullptr);
+}
+
+
+bool AGridTile::PreoccupyTile(AActor* InOccupyingActor)
+{
+	if (!PreoccupyingActor)
+	{
+		PreoccupyingActor = InOccupyingActor;
+		return true;
+	}
+	return false;
 }
 
 void FTileStateLayer::SetTileStateForLayer(const UObject* Agent, ETileDisplayState NewState)

@@ -40,15 +40,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
 		FName UnitID;
 
-	//The class template which this unit uses
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta=(AllowedClasses="UnitRaceTemplates"))
-		FSoftObjectPath UnitRace;
+	//The specific values used to tweak racial appearance
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)
+		FUnitBodyData UnitBodyData;
 	//The class template which this unit uses
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta = (AllowedClasses = "UnitProfession"))
 		FSoftObjectPath UnitProfession;
-	//The specific values used to tweak racial appearance
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)
-		FUnitAppearanceAttributes AppearanceAttributes;
 
 	//The units attributes
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes", SaveGame)
@@ -89,9 +86,22 @@ public:
 
 
 public:
-
+	UFUNCTION(BlueprintCallable)
+		class UUnitData* Duplicate();
 	UFUNCTION(BlueprintPure, Category = "UnitData")
-		class UUnitRaceTemplates* GetRace();
+		class UUnitRace* GetRace();
+	UFUNCTION(BlueprintPure, Category = "UnitData")
+		class UBodyTypeAppearanceData* GetAppearanceData();
 	UFUNCTION(BlueprintPure, Category = "UnitData")
 		class UUnitProfession* GetProfession();
+
+private:
+	/*Function to get the possible Super Body Options, defined here since this object
+	owns the body data and ustructs cant define ufunctions*/
+	UFUNCTION()
+		TArray<FName> GetSuperBodyOptions();
+	/*Function to get the possible Sub Body Options, defined here since this object
+	owns the body data and ustructs cant define ufunctions*/
+	UFUNCTION()
+		TArray<FName> GetSubBodyOptions();
 };

@@ -135,8 +135,7 @@ public:
 	void UpdateTile();
 
 	//UFUNCTION(BlueprintCallable)
-	bool OccupyTile(AActor* InOccupyingActor);
-	//UFUNCTION(BlueprintCallable)
+
 
 	//Function that asyncronously tries to leave the tile by calling all events bound to it, then calls the
 	//Callback passed via parameters to signla whether or not the leave was successful
@@ -149,8 +148,14 @@ public:
 	UFUNCTION(BlueprintPure)
 		bool GetIsOccupied();
 
+	/*Notifies this tile that its about to be occupied*/
+	bool PreoccupyTile(AActor* InOccupyingActor);
+	/*Notifies this tile that its currently being occupoed*/
+	bool OccupyTile(AActor* InOccupyingActor);
 
 private:
+	UPROPERTY()
+		AActor* PreoccupyingActor;
 	UPROPERTY()
 		AActor* OccupyingActor;
 	UPROPERTY()

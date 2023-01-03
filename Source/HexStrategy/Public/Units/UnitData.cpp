@@ -14,14 +14,72 @@ void UUnitData::EquipSlotIfNeeded(FItemSlot& Slot)
 }
 
 
-class UUnitRaceTemplates* UUnitData::GetRace()
+class UUnitData* UUnitData::Duplicate()
 {
-	return Cast<UUnitRaceTemplates>(UnitRace.TryLoad());
+	UUnitData* Unit = DuplicateObject<UUnitData>(this, GetTransientPackage());
+	return Unit;
+}
+
+class UUnitRace* UUnitData::GetRace()
+{
+	return Cast<UUnitRace>(UnitBodyData.UnitRace.TryLoad());
+}
+
+class UBodyTypeAppearanceData* UUnitData::GetAppearanceData()
+{
+	UUnitRace* UnitRace = Cast<UUnitRace>(UnitBodyData.UnitRace.TryLoad());
+
+	if(!UnitRace)
+		return nullptr;
+
+	return UnitRace->FindAppearanceData(UnitBodyData.SuperBodyTypeID, UnitBodyData.SubBodyTypeID);
 }
 
 class UUnitProfession* UUnitData::GetProfession()
 {
 	return Cast<UUnitProfession>(UnitProfession.TryLoad());
+}
+
+TArray<FName> UUnitData::GetSuperBodyOptions()
+{
+	TArray<FName> Out;
+
+
+	UUnitRace* UnitRace = Cast<UUnitRace>(UnitBodyData.UnitRace.TryLoad());
+
+	if (!UnitRace)
+		return Out;
+
+	for (FSuperBodyTypeOptions& Opt : UnitRace->BodyTypeOptions)
+	{
+		Out.Add(Opt.OptionID);
+	}
+
+	return Out;
+}
+
+TArray<FName> UUnitData::GetSubBodyOptions()
+{
+	TArray<FName> Out;
+
+
+	UUnitRace* UnitRace = Cast<UUnitRace>(UnitBodyData.UnitRace.TryLoad());
+
+	if (!UnitRace)
+		return Out;
+
+	for (FSuperBodyTypeOptions& Opt : UnitRace->BodyTypeOptions)
+	{
+		if (Opt.OptionID == UnitBodyData.SuperBodyTypeID)
+		{
+			for (FSubBodyTypeOptions& SubOpt : Opt.Suboptions)
+			{
+				Out.Add(SubOpt.OptionID);
+			}
+		}
+	}
+
+	return Out;
 }
 
 void UUnitData::Initialize()
