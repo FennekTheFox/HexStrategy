@@ -65,17 +65,20 @@ public:
 	/*
 	* The Data Asset describing all the units appearance, behaviour, etc.
 	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Unit|Attributes")
 		class UUnitData* Unit;
 	/*
 	* The struct managing who controls this unit, should be set by whoever spawns it
 	*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Unit|Attributes")
 			FUnitAffiliation Affiliation {
 			EUnitAffiliation::Neutral0
 	};
 
 	void PostInitializeComponents() override;
+
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	//END Unit functionality
 

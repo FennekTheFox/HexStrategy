@@ -36,7 +36,7 @@ struct FTileStateLayer
 	void ResetTileStateForLayer(const UObject* Agent);
 	ETileDisplayState GetTileStateForLayer();
 
-	TArray<TPair<const UObject*, TEnumAsByte<ETileDisplayState>>> LayerContent;
+	TArray<TPair<const UObject*, ETileDisplayState>> LayerContent;
 };
 
 

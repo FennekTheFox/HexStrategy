@@ -5,7 +5,8 @@
 #include "GameplayAbilities/GAS_UnitAbilities.h"
 #include "Units/UnitData.h"
 #include "AbilitySystemComponent.h"
-#include "../Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include <Net/UnrealNetwork.h>
 
 // Sets default values
 AUnitBase::AUnitBase()
@@ -29,6 +30,15 @@ void AUnitBase::PostInitializeComponents()
 	InitializeAbilitySystem();
 
 	Super::PostInitializeComponents();
+}
+
+void AUnitBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(AUnitBase, Unit, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(AUnitBase, Affiliation, COND_None, REPNOTIFY_Always);
+
 }
 
 // Called when the game starts or when spawned

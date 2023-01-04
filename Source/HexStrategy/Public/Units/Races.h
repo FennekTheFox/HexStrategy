@@ -100,8 +100,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FText RaceLabel;
 	//The body type flipbook suit for the race
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Appearance")
 		TArray<FSuperBodyTypeOptions> BodyTypeOptions;
+
+
+	//The localizable name of the race
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Gameplay")
+		FFlatAttributeList RacialAttributeBonus;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Gameplay")
+		TArray<FGameplayAbilitySpecDef> RacialAbilities;
 
 public:
 	UFUNCTION(BlueprintPure)

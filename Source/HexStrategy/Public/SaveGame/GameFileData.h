@@ -65,10 +65,10 @@ class UGameFileData : public UObject
 
 public:
 	/*Meta Data describing the save game object*/
-	UPROPERTY(BlueprintReadWrite, Category = "PlayerData")
+	UPROPERTY(BlueprintReadWrite, Category = "PlayerData", meta=(ExposeOnSpawn))
 		FGameFileMetaData MetaData;
 	//The player's personal unit
-	UPROPERTY(BlueprintReadWrite, Category = "PlayerData")
+	UPROPERTY(BlueprintReadWrite, Category = "PlayerData", meta = (ExposeOnSpawn))
 		UUnitData* PlayerUnitCharacter;
 	//The list of units at the players disposal
 	UPROPERTY(BlueprintReadWrite, Category = "PlayerData")

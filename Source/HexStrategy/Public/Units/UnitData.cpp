@@ -1,5 +1,7 @@
 #include "UnitData.h"
 
+#include <Net/UnrealNetwork.h>
+
 
 void UUnitData::EquipSlotIfNeeded(FItemSlot& Slot)
 {
@@ -13,6 +15,26 @@ void UUnitData::EquipSlotIfNeeded(FItemSlot& Slot)
 	}
 }
 
+
+void UUnitData::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitName, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitID, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitBodyData, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitProfession, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, Attributes, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitEquippedItems, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitInventory, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitExperiencePoints, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitProfessionProgress, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, SlottedAbilities, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, LearnedAbilities, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, EquipmentAbilities, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, JoinedDateTime, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, LastUsedDateTime, COND_None, REPNOTIFY_Always);
+}
 
 class UUnitData* UUnitData::Duplicate()
 {

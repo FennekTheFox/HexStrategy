@@ -33,6 +33,9 @@ public:
 	void Initialize();
 	void EquipSlotIfNeeded(FItemSlot& Slot);
 
+
+	void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	//The units full name
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
