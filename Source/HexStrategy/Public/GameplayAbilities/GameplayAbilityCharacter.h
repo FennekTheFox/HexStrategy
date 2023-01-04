@@ -109,6 +109,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void NotifyEncounterEnded();
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+		void SetUnit(UUnitData* InUnit);
+
 	virtual void GiveAbilities();
 
 	virtual void OnRep_PlayerState() override;

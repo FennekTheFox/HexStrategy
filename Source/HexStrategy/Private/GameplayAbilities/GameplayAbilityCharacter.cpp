@@ -48,7 +48,7 @@ void AUnitBase::BeginPlay()
 
 	//We need to duplicate the unit object if its not transient, since we otherwise
 	//override values in the template data assets
-	if (Unit->GetPackage() != GetTransientPackage())
+	if (Unit && Unit->GetPackage() != GetTransientPackage())
 	{
 		Unit = DuplicateObject<UUnitData>(Unit, GetTransientPackage());
 		Unit->Initialize();
@@ -178,6 +178,11 @@ void AUnitBase::NotifyEncounterEnded()
 	}
 }
 
+
+void AUnitBase::SetUnit_Implementation(class UUnitData* InUnit)
+{
+	Unit = InUnit;
+}
 
 void AUnitBase::GiveAbilities()
 {
