@@ -4,6 +4,7 @@
 #include "Grid/GridPainter/GridPainter.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Libraries/GridUtilityLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 
 #define SQRT_THREE_HALVED 0.866f
@@ -24,13 +25,29 @@ AGridActor::AGridActor()
 	//PrimaryActorTick.bCanEverTick = true;
 	if (GridPainterClass == nullptr) GridPainterClass = UGridPainter::StaticClass();
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
+
+	bReplicates = true;
 }
 
-void AGridActor::SetIsActive(bool bNewActive)
+void AGridActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	//DOREPLIFETIME_CONDITION_NOTIFY(AGridActor, bIsActive, COND_None, REPNOTIFY_Always);
+}
+
+void AGridActor::SetIsActive_Implementation(bool bNewActive)
 {
 	bIsActive = bNewActive;
 	GridPainter->UpdateGrid();
 }
+
+//
+//void AGridActor::OnRep_IsActive(bool newIsActive)
+//{
+//	bIsActive = newIsActive;
+//	GridPainter->UpdateGrid();
+//}
 
 void AGridActor::OnConstruction(const FTransform& Transform)
 {
@@ -107,10 +124,13 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 		AGridTile* comp = *compptr;
 		float compDist = (comp->GetActorLocation() - Coordinates).Size();
 
-		if (compDist < minDist)
+		if (bCanBeOccupied || !comp->GetIsOccupied())
 		{
-			minDist = compDist;
-			ret = comp;
+			if (compDist < minDist)
+			{
+				minDist = compDist;
+				ret = comp;
+			}
 		}
 
 		h++;
@@ -127,10 +147,13 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 
 		float compDist = (comp->GetActorLocation() - Coordinates).Size();
 
-		if (compDist < minDist)
+		if (bCanBeOccupied || !comp->GetIsOccupied())
 		{
-			minDist = compDist;
-			ret = comp;
+			if (compDist < minDist)
+			{
+				minDist = compDist;
+				ret = comp;
+			}
 		}
 	}
 
@@ -170,7 +193,7 @@ void AGridActor::GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, in
 
 			//Discover all tiles;
 			//Iterate over layers of the current coordinates;
-			for (int h = 0; AGridTile** TilePtr = GridTiles.Find(FIntVector(Current_Coords.X, Current_Coords.Y, h)); h++)
+			for (int h = 0; AGridTile * *TilePtr = GridTiles.Find(FIntVector(Current_Coords.X, Current_Coords.Y, h)); h++)
 			{
 				AGridTile* pvt = *TilePtr;
 				OutTiles.Add(pvt);

@@ -122,6 +122,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes|Neighbours")
 		AGridTile* DownTile;
 
+	/*The actor that occupies the tile. Replicated because movement is calculated locally*/
+	UPROPERTY(Replicated, VisibleAnywhere)
+		AActor* OccupyingActor;
+
+
+	void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 
@@ -154,15 +160,17 @@ public:
 	bool OccupyTile(AActor* InOccupyingActor);
 
 private:
+	/*The unit that announces its attachment to this tile, so that no other unit tries to attach before 
+	the pre-occupant arrives and occupies properly*/
 	UPROPERTY()
 		AActor* PreoccupyingActor;
-	UPROPERTY()
-		AActor* OccupyingActor;
+	/*Tasks bound to the tile, executing once a unit enters it.*/
 	UPROPERTY()
 		TArray<UGameplayTask*> OnEnterTasks;
+	/*Tasks bound to the tile, executing once a unit leaves it.*/
 	UPROPERTY()
 		TArray<UGameplayTask*> OnLeaveTasks;
-
+	/*The current display state of the Tile, does not replicate*/
 	UPROPERTY(VisibleAnywhere)
 		FTileState DisplayState;
 };

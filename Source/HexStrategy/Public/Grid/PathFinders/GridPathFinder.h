@@ -101,6 +101,9 @@ public:
 		AActor* Sender;
 
 	UPROPERTY(BlueprintReadWrite, Category = "HexGridPathFindingRequest")
+		AGridActor* GridActor;
+
+	UPROPERTY(BlueprintReadWrite, Category = "HexGridPathFindingRequest")
 		AGridTile* Start;
 
 	UPROPERTY(BlueprintReadWrite, Category = "HexGridPathFindingRequest")
@@ -185,9 +188,6 @@ public:
 		virtual void GetReachableTiles(const FGridPathFinderRequest InRequest, TArray<AGridTile*>& Result);
 
 	FGridPathFinderRequest Request;
-
-	UPROPERTY(BlueprintReadWrite)
-		AGridActor* GridActor;
 };
 
 

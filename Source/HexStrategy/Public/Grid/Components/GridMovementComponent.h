@@ -38,6 +38,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void AttachToGrid(AGridActor* NewGrid = nullptr);
+	//UFUNCTION(Client, reliable, BlueprintCallable)
+	//	void CL_AttachToGrid(AGridActor* NewGrid = nullptr);
 	UFUNCTION(BlueprintCallable)
 		void DetachFromGrid(AGridActor* InGrid = nullptr);
 	UFUNCTION(BlueprintCallable)
@@ -86,6 +88,9 @@ public:
 
 	void BeginPlay() override;
 
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	void OnLeaveTileCompleted(bool bSuccess);
 
@@ -98,8 +103,8 @@ public:
 		float MaxWalkableSlopeIncline = 30.f;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement Settings", meta = (DisplayName = "Maximum slidable slope (in deg)"))
 		float MaxSlidableSlopeDecline = 45.f;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement Settings")
-		int32 MovementRadius = 10;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement Settings")
+	//	int32 MovementRadius = 10;
 
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement Settings|Data")
 	//	class UGridActionData_Base* ActionData;
@@ -120,10 +125,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Query")
 		TEnumAsByte<EGridMovementState> MovementState = EGridMovementState::Idle;
 
-protected:
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Query")
+public:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Replicated, Category = "Movement Query")
 		AGridTile* CurrentTile;
-	UPROPERTY(BlueprintReadOnly, Category = "Movement Query")
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Replicated, Category = "Movement Query")
 		AGridActor* Grid;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Query")
 		UGridMovementAgent* PathFinder;

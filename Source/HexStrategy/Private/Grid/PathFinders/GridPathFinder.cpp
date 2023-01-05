@@ -134,7 +134,6 @@ int32 FAStarHelper::DistanceHeuristic(AGridTile* Probe, AGridTile* Target)
 
 UGridPathFinderAgent::UGridPathFinderAgent()
 {
-	GridActor = nullptr;
 }
 
 UGridPathFinderAgent::~UGridPathFinderAgent()
@@ -159,7 +158,7 @@ AActor* UGridPathFinderAgent::GetSender() const
 
 AGridActor* UGridPathFinderAgent::GetGrid() const
 {
-	return GridActor;
+	return Request.GridActor;
 }
 
 const FGameplayTagContainer& UGridPathFinderAgent::GetExtraTags() const
@@ -203,7 +202,7 @@ bool UGridPathFinderAgent::FindPath(const FGridPathFinderRequest InRequest, TArr
 		UE_LOG(LogTemp, Log, TEXT("Request invalid"))
 			return false;
 	}
-	if (!GridActor)
+	if (!Request.GridActor)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Grid invalid"))
 			return false;
@@ -217,7 +216,7 @@ bool UGridPathFinderAgent::FindPath(const FGridPathFinderRequest InRequest, TArr
 	Path.Reset();
 	bool Success = false;
 
-	FAStarHelper AStarHelper(Request.Start, Request.Goal, GridActor, this);
+	FAStarHelper AStarHelper(Request.Start, Request.Goal, Request.GridActor, this);
 
 	int32 Step = 0;
 	while (!Success)
@@ -276,7 +275,7 @@ void UGridPathFinderAgent::GetReachableTiles(const FGridPathFinderRequest InRequ
 	TArray<AGridTile*> OpenSet, ClosedSet;
 	OpenSet.Add(Request.Start);
 
-	FWidthSearchHelper Helper(InRequest.Start, GridActor, this);
+	FWidthSearchHelper Helper(InRequest.Start, InRequest.GridActor, this);
 
 	//Step until theres no more reachable tiles
 	while (Helper.Step());

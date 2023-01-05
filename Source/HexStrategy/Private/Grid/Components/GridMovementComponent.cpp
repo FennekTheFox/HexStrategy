@@ -11,6 +11,7 @@
 #include "GameplayTagContainer.h"
 #include "../Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/AbilitySystemBlueprintLibrary.h"
 #include "GameplayAbilities/UnitAttributeSet.h"
+#include "Net/UnrealNetwork.h"
 
 
 
@@ -47,6 +48,7 @@ UGridMovementComponent::UGridMovementComponent()
 	{
 		DecrementMovementEffectClass = DecrementMovementFinder.Class;
 	}
+
 }
 
 void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
@@ -62,7 +64,7 @@ void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
 	}
 
 	//Initialise the path finders reference to the grid
-	PathFinder->GridActor = Grid;
+	//PathFinder->GridActor = Grid;
 
 	//Initiate movement to the closest tile	
 	CurrentTileLoc = GetOwner()->GetActorLocation() - Bounds.Z * FVector::UpVector;
@@ -73,10 +75,15 @@ void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
 	MovementDuration = (CurrentTileLoc - NextTileLoc).Size() / MovementSpeed;
 	TimePassed = 0.0f;
 	MovementState = Walking;
-
+	//CL_AttachToGrid_Implementation(NewGrid);
 
 	bInMotion = true;
 }
+
+//void UGridMovementComponent::CL_AttachToGrid_Implementation(AGridActor* NewGrid /*= nullptr*/)
+//{
+//	//PathFinder->GridActor = NewGrid;
+//}
 
 void UGridMovementComponent::DetachFromGrid(AGridActor* InGrid /*= nullptr*/)
 {
@@ -110,6 +117,7 @@ bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
 	TArray<AGridTile*>Path;
 
 	FGridPathFinderRequest Request;
+	Request.GridActor = Grid;
 	Request.Sender = GetOwner();
 	Request.Start = CurrentTile;
 	Request.Goal = TargetTile;
@@ -144,6 +152,7 @@ bool UGridMovementComponent::GetPathTo(AGridTile* TargetTile, TArray<AGridTile*>
 
 
 	FGridPathFinderRequest Request;
+	Request.GridActor = Grid;
 	Request.Sender = GetOwner();
 	Request.Start = CurrentTile;
 	Request.Goal = TargetTile;
@@ -183,6 +192,7 @@ bool UGridMovementComponent::CanMoveToTile(AGridTile* TargetTile, TArray<AGridTi
 		PotentialPath.Reset();
 
 		FGridPathFinderRequest Request;
+		Request.GridActor = Grid;
 		Request.Sender = GetOwner();
 		Request.Start = CurrentTile;
 		Request.Goal = TargetTile;
@@ -255,6 +265,7 @@ void UGridMovementComponent::GetAllReachableTiles(TArray<AGridTile*>& ReachableT
 		ReachableTiles.Reset();
 
 		FGridPathFinderRequest Request;
+		Request.GridActor = Grid;
 		Request.Sender = GetOwner();
 		Request.Start = CurrentTile;
 		Request.Goal = nullptr;
@@ -394,10 +405,12 @@ void UGridMovementComponent::TickComponent(float DeltaTime, enum ELevelTick Tick
 				CurrentTile->OccupyTile(GetOwner());
 				MovementState = Walking;
 
-				FVector TransitionLocation = NextTileLoc + FVector::UpVector * (Bounds.Z);
+				FVector TransitionLocation = NextTileLoc;// + FVector::UpVector * (Bounds.Z);
 				//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 20.f, FLinearColor::Blue, 3.f);
 				GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
 				GetOwner()->SetActorLocation(TransitionLocation);
+
+				//UKismetSystemLibrary::DrawDebugPoint(this, NextTileLoc, 50.f, FLinearColor::Red, 10.f );
 
 				//Execute_SpendActionResources(this, 1);
 				//CurrentTile->OnTilePassed.Broadcast(CurrentTile, GetOwner());
@@ -414,10 +427,11 @@ bool UGridMovementComponent::IsComponentTickEnabled() const
 void UGridMovementComponent::ProgressWalking(float BlendValue)
 {
 	float Alpha = WalkCurve->GetFloatValue(BlendValue);
-	FVector TransitionLocation = (1 - Alpha) * CurrentTileLoc + Alpha * NextTileLoc + FVector(0.0f, 0.0f, Bounds.Z);
+	FVector TransitionLocation = (1 - Alpha) * CurrentTileLoc + Alpha * NextTileLoc; // + FVector(0.0f, 0.0f, Bounds.Z);
 	//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 3.f, FLinearColor::Green, 3.f);
+
 	GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
-	//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 4.f, FLinearColor::Red, 3.f);
+	//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 3.f, FLinearColor::Blue, 10.f);
 	GetOwner()->SetActorLocation(TransitionLocation);
 }
 
@@ -462,6 +476,14 @@ void UGridMovementComponent::BeginPlay()
 		FGameplayAbilitySpec Spec = FGameplayAbilitySpec(MoveAbilityClass, 1, INDEX_NONE, this);
 		MoveAbilityHandle = ASC->GiveAbility(Spec);
 	}
+}
+
+void UGridMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UGridMovementComponent, CurrentTile);
+	DOREPLIFETIME(UGridMovementComponent, Grid);
 }
 
 //void UGridMovementComponent::RefreshResources_OnStart_Implementation()

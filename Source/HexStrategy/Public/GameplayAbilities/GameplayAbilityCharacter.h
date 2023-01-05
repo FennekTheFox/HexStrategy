@@ -68,7 +68,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Unit|Attributes")
 		class UUnitData* Unit;
 	/*
-	* The struct managing who controls this unit, should be set by whoever spawns it
+	* The struct managing who controls this uni
 	*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Unit|Attributes")
 			FUnitAffiliation Affiliation {
@@ -109,8 +109,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void NotifyEncounterEnded();
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-		void SetUnit(UUnitData* InUnit);
+	UFUNCTION(BlueprintCallable, Server, reliable)
+		void SetUnit(UUnitData* InUnit, FUnitAffiliation InAffiliation);
 
 	virtual void GiveAbilities();
 

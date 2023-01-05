@@ -27,8 +27,12 @@ struct FUnitAffiliation
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		EUnitAffiliation UnitAffiliation;
+		EUnitAffiliation UnitAffiliation = EUnitAffiliation::Neutral0;
 
+	/*The player controler this unit belongs to, only known to the game mode*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(EditConditionHides, EditCondition="UnitAffiliation = Player"))
-		int32 PlayerIndex;
+		APlayerController* OwningPlayerController;
+	/*The PC index this unit belongs to, set by game mode*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		int32 OwningPlayerIndex = -1;
 };

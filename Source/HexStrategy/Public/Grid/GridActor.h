@@ -75,11 +75,14 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Grid|Debug")
 		TMap<FIntVector, AGridTile*> GridTiles;
 
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	UPROPERTY()
 		UGridPainter* GridPainter;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, NetMulticast, reliable)
 		void SetIsActive(bool bNewActive);
 
 

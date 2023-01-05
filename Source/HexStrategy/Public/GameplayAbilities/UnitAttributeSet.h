@@ -28,7 +28,7 @@ public:
 	
 	
 	//Unit Health
-	UPROPERTY(BlueprintReadOnly, CategorY="Attributes", ReplicatedUsing = OnRep_MaxHealth)
+	UPROPERTY(BlueprintReadOnly, Category="Attributes", ReplicatedUsing = OnRep_MaxHealth)
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, MaxHealth);
 
@@ -46,7 +46,7 @@ public:
 
 
 	//Unit MP
-	UPROPERTY(BlueprintReadOnly, CategorY = "Attributes", ReplicatedUsing = OnRep_MP)
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_MP)
 	FGameplayAttributeData MP;
 	ATTRIBUTE_ACCESSORS(UGAS_UnitAttributeSet, MP);
 

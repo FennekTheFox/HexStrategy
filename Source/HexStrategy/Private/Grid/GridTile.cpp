@@ -3,10 +3,22 @@
 #include "Grid/GridPainter/GridPainter.h"
 #include "GameplayTasks/Classes/GameplayTask.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 AGridTile::AGridTile()
 {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
+
+	bReplicates = true;
+	NetUpdateFrequency = 10.0f;
+}
+
+void AGridTile::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+
+	DOREPLIFETIME(AGridTile, OccupyingActor);
 }
 
 void AGridTile::SetTileState(const UObject* Agent, ETileDisplayState NewState, int32 InLayer /*= 0*/)

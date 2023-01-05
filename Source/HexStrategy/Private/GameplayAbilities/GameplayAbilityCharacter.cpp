@@ -7,6 +7,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include <Net/UnrealNetwork.h>
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AUnitBase::AUnitBase()
@@ -22,7 +23,17 @@ AUnitBase::AUnitBase()
 	//GameplayAttributes = CreateDefaultSubobject<UGAS_UnitAttributeSet>("Attributes");
 	//AbilitySystemComponent->AddAttributeSetSubobject(GameplayAttributes.Get());
 
+	bReplicates = true;
 	NetUpdateFrequency = 100.0f;
+}
+
+void AUnitBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUnitBase, Unit);
+	DOREPLIFETIME(AUnitBase, Affiliation);
+
 }
 
 void AUnitBase::PostInitializeComponents()
@@ -32,14 +43,6 @@ void AUnitBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 }
 
-void AUnitBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION_NOTIFY(AUnitBase, Unit, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(AUnitBase, Affiliation, COND_None, REPNOTIFY_Always);
-
-}
 
 // Called when the game starts or when spawned
 void AUnitBase::BeginPlay()
@@ -179,10 +182,12 @@ void AUnitBase::NotifyEncounterEnded()
 }
 
 
-void AUnitBase::SetUnit_Implementation(class UUnitData* InUnit)
+void AUnitBase::SetUnit_Implementation(UUnitData* InUnit, FUnitAffiliation InAffiliation)
 {
 	Unit = InUnit;
+	Affiliation = InAffiliation;
 }
+
 
 void AUnitBase::GiveAbilities()
 {
