@@ -5,6 +5,8 @@
 #include "Grid/GridActor.h"
 #include "Grid/PathFinders/GridPathFinder.h"
 #include "Abilities/GameplayAbility.h"
+#include <AIModule/Classes/AITypes.h>
+#include <AIModule/Classes/Navigation/PathFollowingComponent.h>
 //#include "IGridActionComponent.h"
 
 #include "GridMovementComponent.generated.h"
@@ -36,16 +38,16 @@ class UGridMovementComponent : public UActorComponent//, public IGridActionCompo
 public:
 	UGridMovementComponent();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(Server, reliable, BlueprintCallable)
 		void AttachToGrid(AGridActor* NewGrid = nullptr);
 	//UFUNCTION(Client, reliable, BlueprintCallable)
 	//	void CL_AttachToGrid(AGridActor* NewGrid = nullptr);
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Server, reliable)
 		void DetachFromGrid(AGridActor* InGrid = nullptr);
+	UFUNCTION(Server, reliable, BlueprintCallable)
+		void MoveToTile(AGridTile* TargetTile);
 	UFUNCTION(BlueprintCallable)
-		bool MoveToTile(UPARAM(ref)AGridTile* TargetTile);
-	UFUNCTION(BlueprintCallable)
-		bool GetPathTo(UPARAM(ref)AGridTile* TargetTile, TArray<AGridTile*>& OutPath);
+		bool GetPathTo(AGridTile* TargetTile, TArray<AGridTile*>& OutPath);
 	UFUNCTION(BlueprintCallable)
 		void AbortMovement();
 	UFUNCTION(BlueprintCallable)
@@ -93,6 +95,9 @@ public:
 
 private:
 	void OnLeaveTileCompleted(bool bSuccess);
+	UFUNCTION()
+		void MovementCompletedCallback(FAIRequestID RequestID, EPathFollowingResult::Type Result);
+	void RequestMoveToLocation(FVector Location);
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Movement Settings")
@@ -145,7 +150,7 @@ private:
 		TSubclassOf<UGameplayEffect> DecrementMovementEffectClass;
 
 	FVector Bounds, Origin;
-	bool bInMotion = false;
+	bool ExecutingPathMovement = false;
 	bool bPaused = false;
 	bool bAwaitingCallback = false;
 	float UpperBound = 0.f;

@@ -72,13 +72,16 @@ public:
 	*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Unit|Attributes")
 			FUnitAffiliation Affiliation {
-			EUnitAffiliation::Neutral0
+			EUnitAffiliationType::Neutral0
 	};
 
 	void PostInitializeComponents() override;
 
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+	void UnPossessed() override;
 
 	//END Unit functionality
 
@@ -123,5 +126,6 @@ private:
 	UPROPERTY()
 		TArray<UGameplayEffect*> InternalGEs;
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	bool bInitialized = false;
 };

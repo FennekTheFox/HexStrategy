@@ -8,7 +8,7 @@ public class HexStrategy : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTasks", "GameplayTags", "Core", "CoreUObject", "Engine", "InputCore", "Paper2D", "UMG" });
+		PublicDependencyModuleNames.AddRange(new string[] { "AIModule", "GameplayAbilities", "GameplayTasks", "GameplayTags", "Core", "CoreUObject", "Engine", "InputCore", "Paper2D", "UMG" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

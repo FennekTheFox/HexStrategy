@@ -12,6 +12,8 @@
 #include "../Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/AbilitySystemBlueprintLibrary.h"
 #include "GameplayAbilities/UnitAttributeSet.h"
 #include "Net/UnrealNetwork.h"
+#include <GameFramework/CharacterMovementComponent.h>
+#include <AIModule/Classes/AIController.h>
 
 
 
@@ -51,7 +53,7 @@ UGridMovementComponent::UGridMovementComponent()
 
 }
 
-void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
+void UGridMovementComponent::AttachToGrid_Implementation(AGridActor* NewGrid)
 {
 	if (NewGrid)
 	{
@@ -64,20 +66,18 @@ void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
 	}
 
 	//Initialise the path finders reference to the grid
-	//PathFinder->GridActor = Grid;
-
-	//Initiate movement to the closest tile	
-	CurrentTileLoc = GetOwner()->GetActorLocation() - Bounds.Z * FVector::UpVector;
 	NextTile = Grid->GetTileClosestToCoordinates(GetOwner()->GetActorLocation());
-	ensure(NextTile->PreoccupyTile(GetOwner()));
-	NextTileLoc = NextTile->GetActorLocation();
-	NextTile->OccupyTile(GetOwner());
-	MovementDuration = (CurrentTileLoc - NextTileLoc).Size() / MovementSpeed;
-	TimePassed = 0.0f;
-	MovementState = Walking;
-	//CL_AttachToGrid_Implementation(NewGrid);
+	NextTile->PreoccupyTile(GetOwner());
+	CurrentTile = NextTile;
 
-	bInMotion = true;
+	AAIController* AIC = Cast<AAIController>(Cast<APawn>(GetOwner())->GetController());
+
+	if (ensure(AIC))
+	{
+		AIC->ReceiveMoveCompleted.AddDynamic(this, &UGridMovementComponent::MovementCompletedCallback);
+		RequestMoveToLocation(NextTile->GetActorLocation());
+	}
+
 }
 
 //void UGridMovementComponent::CL_AttachToGrid_Implementation(AGridActor* NewGrid /*= nullptr*/)
@@ -85,7 +85,7 @@ void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
 //	//PathFinder->GridActor = NewGrid;
 //}
 
-void UGridMovementComponent::DetachFromGrid(AGridActor* InGrid /*= nullptr*/)
+void UGridMovementComponent::DetachFromGrid_Implementation(AGridActor* InGrid /*= nullptr*/)
 {
 	if (!InGrid)
 	{
@@ -100,7 +100,7 @@ void UGridMovementComponent::DetachFromGrid(AGridActor* InGrid /*= nullptr*/)
 	}
 }
 
-bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
+void UGridMovementComponent::MoveToTile_Implementation(AGridTile* TargetTile)
 {
 	ensure(PathFinder);
 	ensure(TargetTile);
@@ -111,7 +111,7 @@ bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
 		//Why move, when we're already there
 
 		OnMovementCompleted();
-		return true;
+		return;
 	}
 
 	TArray<AGridTile*>Path;
@@ -125,8 +125,8 @@ bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
 
 	if (PathFinder->FindPath(Request, Path))
 	{
-		bInMotion = true;
-		TimePassed = 0.f;
+		//ExecutingPathMovement = true;
+		//TimePassed = 0.f;
 
 		//Clean the current tile from the path
 		Path.Remove(CurrentTile);
@@ -134,10 +134,12 @@ bool UGridMovementComponent::MoveToTile(AGridTile* TargetTile)
 		if (Path.Num() != 0)
 		{
 			PathToTravel = Path;
-			return true;
+			NextTile = PathToTravel.Pop();
+			RequestMoveToLocation(NextTile->GetActorLocation());
+			//return true;
 		}
 	}
-	return false;
+	//return false;
 }
 
 
@@ -164,7 +166,7 @@ bool UGridMovementComponent::GetPathTo(AGridTile* TargetTile, TArray<AGridTile*>
 void UGridMovementComponent::AbortMovement()
 {
 	UE_LOG(LogTemp, Log, TEXT("Abandoning Movement"))
-	bInMotion = false;
+		ExecutingPathMovement = false;
 	PathToTravel.Reset();
 }
 
@@ -313,15 +315,25 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 
 	bAwaitingCallback = false;
 
+	//Check if we could successfully leave the tile
 	if (bSuccess)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Leave tile success"))
+		//UE_LOG(LogTemp, Log, TEXT("Leave tile success"))
 
+		//Reduce the available movement via a gameplay effect
 		DecrementAvailableMovement();
-		//Set to travel to next tile
-		CurrentTileLoc = CurrentTile->GetActorLocation();
+
+		AAIController* AIC = Cast<AAIController>(Cast<APawn>(GetOwner())->GetController());
 		NextTile = PathToTravel.Pop();
-		NextTileLoc = NextTile->GetActorLocation();
+		
+		if(ensure(AIC))
+			AIC->MoveToLocation(NextTile->GetActorLocation(), 1, false, false);
+
+
+		//Set to travel to next tile
+		//CurrentTileLoc = CurrentTile->GetActorLocation();
+		//NextTile = PathToTravel.Pop();
+		//NextTileLoc = NextTile->GetActorLocation();
 
 		bool bJumpingRequired = CurrentTile->ConnectedTiles.Find(NextTile)->bRequiresJump;
 		MovementState = (bJumpingRequired ? PreJump : Walking);
@@ -333,13 +345,52 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("Leave tile failure"))
-		//The movement was interrupted, cancel the movement
-		AbortMovement();
+		//UE_LOG(LogTemp, Log, TEXT("Leave tile failure"))
+			//The movement was interrupted, cancel the movement
+			AbortMovement();
 	}
 
 }
 
+
+void UGridMovementComponent::MovementCompletedCallback(FAIRequestID RequestID, EPathFollowingResult::Type Result)
+{			
+	if (Result == EPathFollowingResult::Success)
+	{
+		CurrentTile = NextTile;
+		CurrentTile->OccupyTile(GetOwner());
+
+
+		//We're currently occupying a tile -> check path, initiate next motion
+		if (PathToTravel.Num() > 0)
+		{
+			CurrentTile->TryLeaveTile(GetOwner(), std::bind(&UGridMovementComponent::OnLeaveTileCompleted, this, std::placeholders::_1));
+			bAwaitingCallback = true;
+		}
+		else
+		{
+			//We're on a tile and no tiles are in the path queue, end of motion
+			ExecutingPathMovement = false;
+			CurrentTile->OccupyTile(GetOwner());
+			MovementState = Idle;
+			OnMovementCompleted();
+		}
+	}
+
+
+}
+
+void UGridMovementComponent::RequestMoveToLocation(FVector Location)
+{
+
+	AAIController* AIC = Cast<AAIController>(Cast<APawn>(GetOwner())->GetController());
+	//NextTile = PathToTravel.Pop();
+
+	if (ensure(AIC))
+	{
+		AIC->MoveToLocation(NextTile->GetActorLocation(), 1, false, false);
+	}
+}
 
 int32 UGridMovementComponent::GetAvailableMovement()
 {
@@ -360,109 +411,136 @@ void UGridMovementComponent::DecrementAvailableMovement()
 
 void UGridMovementComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	//Check whether motion needs to be progressed.
-	if (bInMotion)
-	{
-		//Check whether motion to the next tile needs to be initiated
-		if (CurrentTile)
-		{
-			//We're currently occupying a tile -> check path, initiate next motion
-			if (PathToTravel.Num() > 0 && !bAwaitingCallback)
-			{
-				CurrentTile->TryLeaveTile(GetOwner(), std::bind(&UGridMovementComponent::OnLeaveTileCompleted, this, std::placeholders::_1));
-				bAwaitingCallback = true;
-			}
-			else if (!bAwaitingCallback)
-			{
-				//We're on a tile and no tiles are in the path queue, end of motion
-				bInMotion = false;
-				CurrentTile->OccupyTile(GetOwner());
-				MovementState = Idle;
-				OnMovementCompleted();
-			}
-		}
-		else
-		{
-			//We're currently in between tiles, control the motion
-			TimePassed += DeltaTime;
-			float BlendFactor = TimePassed / MovementDuration;
+	//if (!GetOwner()->HasAuthority() || bAwaitingCallback)
+	//	return;
 
-			if (BlendFactor < 1)
-			{
-				switch (MovementState)
-				{
-				case Walking: ProgressWalking(BlendFactor); break;
-				case PreJump:	//all of these fall through to ProgressJumping
-				case Jumping:
-				case Falling:
-				case Landing: ProgressJumping(BlendFactor); break;
-				}
-			}
-			else
-			{
-				//Motion has finished
-				CurrentTile = NextTile;
-				CurrentTile->OccupyTile(GetOwner());
-				MovementState = Walking;
+	////if (ExecutingPathMovement)
+	////{
+	////	if (CurrentTile)
+	////	{
+	////		if (PathToTravel.Num() > 0)
+	////		{
+	////			//Try to leave the current tile
+	////			CurrentTile->TryLeaveTile(GetOwner(), std::bind(&UGridMovementComponent::OnLeaveTileCompleted, this, std::placeholders::_1));
+	////			bAwaitingCallback = true;
+	////		}
+	////		else
+	////		{
+	////			//We're on a tile and the path is empty -> signal movement complete
+	////			ExecutingPathMovement = false;
+	////			CurrentTile->OccupyTile(GetOwner());
+	////			OnMovementCompleted;
+	////		}
+	////	}
+	////}
+	////else
+	////{
 
-				FVector TransitionLocation = NextTileLoc;// + FVector::UpVector * (Bounds.Z);
-				//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 20.f, FLinearColor::Blue, 3.f);
-				GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
-				GetOwner()->SetActorLocation(TransitionLocation);
+	////}
 
-				//UKismetSystemLibrary::DrawDebugPoint(this, NextTileLoc, 50.f, FLinearColor::Red, 10.f );
+	////Check whether motion needs to be progressed.
+	//if (ExecutingPathMovement)
+	//{
+	//	//Check whether motion to the next tile needs to be initiated
+	//	if (CurrentTile)
+	//	{
+	//		//We're currently occupying a tile -> check path, initiate next motion
+	//		if (PathToTravel.Num() > 0)
+	//		{
+	//			CurrentTile->TryLeaveTile(GetOwner(), std::bind(&UGridMovementComponent::OnLeaveTileCompleted, this, std::placeholders::_1));
+	//			bAwaitingCallback = true;
+	//		}
+	//		else
+	//		{
+	//			//We're on a tile and no tiles are in the path queue, end of motion
+	//			ExecutingPathMovement = false;
+	//			CurrentTile->OccupyTile(GetOwner());
+	//			MovementState = Idle;
+	//			OnMovementCompleted();
+	//		}
+	//	}
+	//	else
+	//	{
+	//		//We're currently in between tiles, control the motion
+	//		TimePassed += DeltaTime;
+	//		float BlendFactor = TimePassed / MovementDuration;
 
-				//Execute_SpendActionResources(this, 1);
-				//CurrentTile->OnTilePassed.Broadcast(CurrentTile, GetOwner());
-			}
-		}
-	}
+	//		if (BlendFactor < 1)
+	//		{
+	//			switch (MovementState)
+	//			{
+	//			case Walking: ProgressWalking(BlendFactor); break;
+	//			case PreJump:	//all of these fall through to ProgressJumping
+	//			case Jumping:
+	//			case Falling:
+	//			case Landing: ProgressJumping(BlendFactor); break;
+	//			}
+	//		}
+	//		else
+	//		{
+	//			//Motion has finished
+	//			CurrentTile = NextTile;
+	//			CurrentTile->OccupyTile(GetOwner());
+	//			MovementState = Walking;
+
+	//			FVector TransitionLocation = NextTileLoc;// + FVector::UpVector * (Bounds.Z);
+	//			//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 20.f, FLinearColor::Blue, 3.f);
+	//			GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
+	//			SVR_UpdateActorLocation(TransitionLocation);
+
+	//			//UKismetSystemLibrary::DrawDebugPoint(this, NextTileLoc, 50.f, FLinearColor::Red, 10.f );
+
+	//			//Execute_SpendActionResources(this, 1);
+	//			//CurrentTile->OnTilePassed.Broadcast(CurrentTile, GetOwner());
+	//		}
+	//	}
+	//}
 }
 
 bool UGridMovementComponent::IsComponentTickEnabled() const
 {
-	return bInMotion && !bPaused;
+	return ExecutingPathMovement && !bPaused;
 }
 
 void UGridMovementComponent::ProgressWalking(float BlendValue)
 {
-	float Alpha = WalkCurve->GetFloatValue(BlendValue);
-	FVector TransitionLocation = (1 - Alpha) * CurrentTileLoc + Alpha * NextTileLoc; // + FVector(0.0f, 0.0f, Bounds.Z);
-	//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 3.f, FLinearColor::Green, 3.f);
+	//float Alpha = WalkCurve->GetFloatValue(BlendValue);
+	//FVector TransitionLocation = (1 - Alpha) * CurrentTileLoc + Alpha * NextTileLoc; // + FVector(0.0f, 0.0f, Bounds.Z);
+	////UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 3.f, FLinearColor::Green, 3.f);
 
-	GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
-	//UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 3.f, FLinearColor::Blue, 10.f);
-	GetOwner()->SetActorLocation(TransitionLocation);
+	//GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
+	////UKismetSystemLibrary::DrawDebugPoint(this, TransitionLocation, 3.f, FLinearColor::Blue, 10.f);
+	//SVR_UpdateActorLocation(TransitionLocation);
 }
 
 void UGridMovementComponent::ProgressJumping(float BlendValue)
 {
-	float AlphaXY = JumpCurve_Horizontal->GetFloatValue(BlendValue);
-	float AlphaZ = JumpCurve_Vertical->GetFloatValue(BlendValue);
-	float AlphaZDeriv = (JumpCurve_Vertical->GetFloatValue(BlendValue + 0.01f) - JumpCurve_Vertical->GetFloatValue(BlendValue)) / 0.01f;
-
-	float ZValue = 0.0f;
-
-	switch (MovementState)
-	{
-	case PreJump: ZValue = CurrentTileLoc.Z; break;
-	case Jumping: ZValue = (1 - AlphaZ) * CurrentTileLoc.Z + AlphaZ * (UpperBound + Bounds.Z + JumpGap); break;
-	case Falling: ZValue = (1 - AlphaZ) * NextTileLoc.Z + AlphaZ * (UpperBound + Bounds.Z + JumpGap); break;
-	case Landing: ZValue = NextTileLoc.Z; break;
-	}
-
-	FVector TransitionLocationXY = (1 - AlphaXY) * CurrentTileLoc + AlphaXY * NextTileLoc;
-	FVector TransitionLocation = FVector(TransitionLocationXY.X, TransitionLocationXY.Y, ZValue) + FVector::UpVector * Bounds.Z;
-	//GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
-	GetOwner()->SetActorLocation(TransitionLocation);
-
-	switch (MovementState)
-	{
-	case PreJump: if (AlphaZ != 0.f) MovementState = Jumping; break;
-	case Jumping: if (AlphaZDeriv <= 0.f) MovementState = Falling; break;
-	case Falling: if (AlphaZ <= 0.01f) MovementState = Landing; break;;
-	default: break;
-	}
+//	float AlphaXY = JumpCurve_Horizontal->GetFloatValue(BlendValue);
+//	float AlphaZ = JumpCurve_Vertical->GetFloatValue(BlendValue);
+//	float AlphaZDeriv = (JumpCurve_Vertical->GetFloatValue(BlendValue + 0.01f) - JumpCurve_Vertical->GetFloatValue(BlendValue)) / 0.01f;
+//
+//	float ZValue = 0.0f;
+//
+//	switch (MovementState)
+//	{
+//	case PreJump: ZValue = CurrentTileLoc.Z; break;
+//	case Jumping: ZValue = (1 - AlphaZ) * CurrentTileLoc.Z + AlphaZ * (UpperBound + Bounds.Z + JumpGap); break;
+//	case Falling: ZValue = (1 - AlphaZ) * NextTileLoc.Z + AlphaZ * (UpperBound + Bounds.Z + JumpGap); break;
+//	case Landing: ZValue = NextTileLoc.Z; break;
+//	}
+//
+//	FVector TransitionLocationXY = (1 - AlphaXY) * CurrentTileLoc + AlphaXY * NextTileLoc;
+//	FVector TransitionLocation = FVector(TransitionLocationXY.X, TransitionLocationXY.Y, ZValue) + FVector::UpVector * Bounds.Z;
+//	//GetWorld()->FindTeleportSpot(GetOwner(), TransitionLocation, GetOwner()->GetActorRotation());
+//	SVR_UpdateActorLocation(TransitionLocation);
+//
+//	switch (MovementState)
+//	{
+//	case PreJump: if (AlphaZ != 0.f) MovementState = Jumping; break;
+//	case Jumping: if (AlphaZDeriv <= 0.f) MovementState = Falling; break;
+//	case Falling: if (AlphaZ <= 0.01f) MovementState = Landing; break;;
+//	default: break;
+//	}
 }
 
 void UGridMovementComponent::BeginPlay()
@@ -471,7 +549,7 @@ void UGridMovementComponent::BeginPlay()
 
 	UAbilitySystemComponent* ASC = GetOwner()->FindComponentByClass<UAbilitySystemComponent>();
 
-	if (ensure(ASC))
+	if (ensure(ASC) && GetOwner()->HasAuthority())
 	{
 		FGameplayAbilitySpec Spec = FGameplayAbilitySpec(MoveAbilityClass, 1, INDEX_NONE, this);
 		MoveAbilityHandle = ASC->GiveAbility(Spec);
@@ -522,6 +600,8 @@ void UGridMovementComponent::OnMovementCompleted()
 {
 	if (GetOwner())
 	{
+		if (!GetOwner()->HasAuthority()) return;
+
 		//Notify the owner via gameplay event
 		UAbilitySystemComponent* AbilitySystemComponent = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
 		if (AbilitySystemComponent != nullptr && IsValidChecked(AbilitySystemComponent))

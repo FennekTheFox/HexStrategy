@@ -36,6 +36,12 @@ void AUnitBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 
 }
 
+void AUnitBase::UnPossessed()
+{
+	Super::UnPossessed();
+	SpawnDefaultController();
+}
+
 void AUnitBase::PostInitializeComponents()
 {
 	InitializeAbilitySystem();
@@ -231,4 +237,3 @@ UAbilitySystemComponent* AUnitBase::GetAbilitySystemComponent() const
 {
 	return ASC;
 }
-
