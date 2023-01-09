@@ -4,11 +4,12 @@
 #include "GameplayTasks/Classes/GameplayTask.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include <Components/StaticMeshComponent.h>
 
 AGridTile::AGridTile()
 {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
-
+	SMC = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SMC"));
 	bReplicates = true;
 	NetUpdateFrequency = 10.0f;
 }
@@ -127,11 +128,11 @@ bool AGridTile::PreoccupyTile(AActor* InOccupyingActor)
 	return false;
 }
 
-void FTileStateLayer::SetTileStateForLayer(const UObject* Agent, ETileDisplayState NewState)
+void FTileStateLayer::SetTileStateForLayer(const UObject* InAgent, ETileDisplayState NewState)
 {
-	auto* ExistingEntry = LayerContent.FindByPredicate([=](TPair<const UObject*, ETileDisplayState> entry)
+	auto* ExistingEntry = LayerContent.FindByPredicate([=](FTileStateLayerEntry entry)
 		{
-			return entry.Key == Agent;
+			return entry.Agent == InAgent;
 		});
 
 	if (ExistingEntry)
@@ -139,12 +140,12 @@ void FTileStateLayer::SetTileStateForLayer(const UObject* Agent, ETileDisplaySta
 		if (NewState != ETileDisplayState::Default)
 		{
 			//Overwrite the existing state
-			ExistingEntry->Value = NewState;
+			ExistingEntry->State = NewState;
 		}
 		else
 		{
 			//Remove the existing entry, since ShowAsDefault should not be an overwrite state;
-			ResetTileStateForLayer(Agent);
+			ResetTileStateForLayer(InAgent);
 		}
 	}
 	else
@@ -152,16 +153,16 @@ void FTileStateLayer::SetTileStateForLayer(const UObject* Agent, ETileDisplaySta
 		if (NewState != ETileDisplayState::Default)
 		{
 			//Create new entry for this layer
-			LayerContent.Add(TPair<const UObject*, ETileDisplayState>(Agent, NewState));
+			LayerContent.Add(FTileStateLayerEntry(InAgent, NewState));
 		}
 	}
 }
 
-void FTileStateLayer::ResetTileStateForLayer(const UObject* Agent)
+void FTileStateLayer::ResetTileStateForLayer(const UObject* InAgent)
 {
-	auto* ExistingEntry = LayerContent.FindByPredicate([=](TPair<const UObject*, ETileDisplayState> entry)
+	auto* ExistingEntry = LayerContent.FindByPredicate([=](FTileStateLayerEntry entry)
 		{
-			return entry.Key == Agent;
+			return entry.Agent == InAgent;
 		});
 
 	if (ExistingEntry)
@@ -179,7 +180,7 @@ ETileDisplayState FTileStateLayer::GetTileStateForLayer()
 	}
 	else
 	{
-		return LayerContent[LayerContent.Num() - 1].Value;
+		return LayerContent[LayerContent.Num() - 1].State;
 	}
 }
 

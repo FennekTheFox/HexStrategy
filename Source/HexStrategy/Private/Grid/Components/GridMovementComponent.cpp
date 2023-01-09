@@ -251,7 +251,7 @@ void UGridMovementComponent::GetAllReachableTiles(TArray<AGridTile*>& ReachableT
 {
 	ReachableTiles.Reset();
 
-	if(GetAvailableMovement() == 0)
+	if(GetAvailableMovement() == 0 || !CurrentTile)
 		return;
 
 	if (bReachableTilesCached && ReachableTilesCacheOrigin == CurrentTile && CacheMovementRadius == GetAvailableMovement())

@@ -26,17 +26,44 @@ enum class ETileDisplayState : uint8
 };
 ENUM_RANGE_BY_COUNT(ETileDisplayState, ETileDisplayState::Count);
 
+USTRUCT()
+struct FTileStateLayerEntry
+{
+	GENERATED_BODY()
+
+public:
+	FTileStateLayerEntry()
+	: Agent(nullptr)
+	,State(ETileDisplayState::Default)
+	{}
+
+	FTileStateLayerEntry(const UObject* InAgent, ETileDisplayState InState)
+	:Agent(InAgent)
+	,State(InState)
+	{}
+
+	UPROPERTY(VisibleAnywhere)
+		const UObject* Agent;
+	UPROPERTY(VisibleAnywhere)
+		ETileDisplayState State;
+
+	const bool operator==(const FTileStateLayerEntry& other)
+	{
+		return Agent == other.Agent;
+	}
+};
 
 USTRUCT()
 struct FTileStateLayer
 {
 	GENERATED_BODY()
 
-		void SetTileStateForLayer(const UObject* Agent, ETileDisplayState NewState);
-	void ResetTileStateForLayer(const UObject* Agent);
+		void SetTileStateForLayer(const UObject* InAgent, ETileDisplayState NewState);
+	void ResetTileStateForLayer(const UObject* InAgent);
 	ETileDisplayState GetTileStateForLayer();
 
-	TArray<TPair<const UObject*, ETileDisplayState>> LayerContent;
+	UPROPERTY(VisibleAnywhere)
+	TArray<FTileStateLayerEntry> LayerContent;
 };
 
 
@@ -50,7 +77,7 @@ struct FTileState
 	ETileDisplayState GetTileState();
 
 public:
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 		TMap<int32, FTileStateLayer> Layers;
 
 private:
@@ -110,10 +137,15 @@ class AGridTile : public AActor
 
 
 public:
+
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes")
 		FIntVector Coordinates;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes")
 		class AGridActor* ParentGrid;
+
+	/*Scene component so tile actors dont get unloaded by world partitioning, TODO find a better way to do this*/
+	UPROPERTY(VisibleAnywhere)
+		UStaticMeshComponent* SMC;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes|Neighbours")
 		TMap<AGridTile*, FConnectedTileData> ConnectedTiles;
@@ -121,6 +153,9 @@ public:
 		AGridTile* UpTile;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes|Neighbours")
 		AGridTile* DownTile;
+	/*The current display state of the Tile, does not replicate*/
+	UPROPERTY(VisibleAnywhere)
+		FTileState DisplayState;
 
 	/*The actor that occupies the tile. Replicated because movement is calculated locally*/
 	UPROPERTY(Replicated, VisibleAnywhere)
@@ -170,8 +205,5 @@ private:
 	/*Tasks bound to the tile, executing once a unit leaves it.*/
 	UPROPERTY()
 		TArray<UGameplayTask*> OnLeaveTasks;
-	/*The current display state of the Tile, does not replicate*/
-	UPROPERTY(VisibleAnywhere)
-		FTileState DisplayState;
 };
 

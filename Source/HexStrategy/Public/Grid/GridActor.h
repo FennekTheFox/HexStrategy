@@ -108,12 +108,14 @@ public:
 	UFUNCTION(BlueprintPure)
 		void GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<AGridTile*>& OutTiles);
 
+	UFUNCTION(CallInEditor)
+	void RegenerateGrid();
+
 private:
 	void BakeConnectedTiles(int x, int y);
 	void CreateGrid();
 	void CreateTilesAtCoordinates(int x, int y);
 	void CleanUpGrid();
-	void RegenerateGrid();
 	
 
 

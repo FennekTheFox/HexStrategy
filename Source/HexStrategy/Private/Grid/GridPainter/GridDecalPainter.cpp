@@ -24,8 +24,10 @@ void UGridDecalPainter::UpdateTile(AGridTile* Tile)
 	if (!CoordinatesToDecal.Contains(Tile->Coordinates))
 	{
 		//Tile decal doesn't exist yet, create it first
-		DecalComp = NewObject<UDecalComponent>(this);
-		DecalComp->RegisterComponentWithWorld(Grid->GetWorld());
+		DecalComp = NewObject<UDecalComponent>(Grid);;
+		DecalComp->RegisterComponent();
+		//DecalComp = NewObject<UDecalComponent>(Tile);;
+		//DecalComp->RegisterComponentWithWorld(Grid->GetWorld());
 		DecalComp->SetRelativeRotation(GetTileDecalRotation());
 		CoordinatesToDecal.Add(Tile->Coordinates, DecalComp);
 
