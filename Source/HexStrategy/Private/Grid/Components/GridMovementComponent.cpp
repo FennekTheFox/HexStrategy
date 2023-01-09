@@ -125,21 +125,14 @@ void UGridMovementComponent::MoveToTile_Implementation(AGridTile* TargetTile)
 
 	if (PathFinder->FindPath(Request, Path))
 	{
-		//ExecutingPathMovement = true;
-		//TimePassed = 0.f;
-
-		//Clean the current tile from the path
 		Path.Remove(CurrentTile);
 
 		if (Path.Num() != 0)
 		{
 			PathToTravel = Path;
-			NextTile = PathToTravel.Pop();
-			RequestMoveToLocation(NextTile->GetActorLocation());
-			//return true;
+			CurrentTile->TryLeaveTile(GetOwner(), std::bind(&UGridMovementComponent::OnLeaveTileCompleted, this, std::placeholders::_1));
 		}
 	}
-	//return false;
 }
 
 
@@ -256,6 +249,11 @@ bool UGridMovementComponent::LetsThisPass(UGridMovementComponent* InGMC)
 
 void UGridMovementComponent::GetAllReachableTiles(TArray<AGridTile*>& ReachableTiles)
 {
+	ReachableTiles.Reset();
+
+	if(GetAvailableMovement() == 0)
+		return;
+
 	if (bReachableTilesCached && ReachableTilesCacheOrigin == CurrentTile && CacheMovementRadius == GetAvailableMovement())
 	{
 		ReachableTiles = CachedReachableTiles;

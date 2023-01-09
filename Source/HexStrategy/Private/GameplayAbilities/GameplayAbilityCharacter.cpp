@@ -17,7 +17,7 @@ AUnitBase::AUnitBase()
 
 	ASC = CreateDefaultSubobject<UGAS_AbilitySystemComponent>("Ability System Component");
 	ASC->SetIsReplicated(true);
-	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Full);
 
 
 	//GameplayAttributes = CreateDefaultSubobject<UGAS_UnitAttributeSet>("Attributes");
@@ -192,17 +192,17 @@ void AUnitBase::SetUnit_Implementation(UUnitData* InUnit, FUnitAffiliation InAff
 {
 	Unit = InUnit;
 	Affiliation = InAffiliation;
+	if(Affiliation.OwningPlayerController)
+		SetOwner(Affiliation.OwningPlayerController);
 }
 
 
 void AUnitBase::GiveAbilities()
 {
-	if (HasAuthority() && ASC && !bInitialized)
+	if (/*HasAuthority() && */ASC && !bInitialized)
 	{
 		for (TSubclassOf<UGAS_UnitAbility>& AbilityClass : DefaultAbilities)
 		{
-			//FGameplayAbilitySpec(TSubclassOf<UGameplayAbility> InAbilityClass, int32 InLevel = 1, int32 InInputID = INDEX_NONE, UObject * InSourceObject = nullptr);
-
 			FGameplayAbilitySpec Spec = FGameplayAbilitySpec(AbilityClass, 1, static_cast<int32>(INDEX_NONE), this);
 			ASC->GiveAbility(Spec);
 		}
