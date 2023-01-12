@@ -49,3 +49,28 @@ public:
 	//UPROPERTY(BlueprintAssignable)
 	//	FAbilityDelegate OnAbilityEnded;
 };
+
+/*Abstract class used to validate whether a supplied tile is valid or not*/
+UCLASS(BlueprintType, Blueprintable, Abstract)
+class UTileValidityChecker : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure)
+		bool ValidateTile(AGridTile* TargetTile, AActor* TargetActor);
+};
+
+
+
+UCLASS()
+class UGAS_GridTargetingAbility : public UGAS_UnitAbility
+{
+	GENERATED_BODY()
+
+public:
+	UGAS_GridTargetingAbility() {};
+
+	UPROPERTY(BlueprintReadOnly, Instanced, EditAnywhere, Category = "Ability Settings")
+		TArray<UTileValidityChecker*> RequiredTiles;
+};

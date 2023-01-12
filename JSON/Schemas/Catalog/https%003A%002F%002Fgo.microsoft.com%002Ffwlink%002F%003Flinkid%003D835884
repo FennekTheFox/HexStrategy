@@ -14,6 +14,12 @@
       "url": "https://json.schemastore.org/base-04.json"
     },
     {
+      "name": "Application Accelerator",
+      "description": "Application Accelerator for VMware Tanzu",
+      "fileMatch": ["accelerator.yaml"],
+      "url": "https://json.schemastore.org/accelerator.json"
+    },
+    {
       "name": "AnyWork Automation Configuration",
       "description": "AnyWork Automation Configuration used to configure automation scripts on AnyWork",
       "fileMatch": [".awc.yaml", ".awc.yml", ".awc.json", ".awc.jsonc", ".awc"],
@@ -3190,6 +3196,12 @@
       "url": "https://json.schemastore.org/typewiz.json"
     },
     {
+      "name": "typo3.json",
+      "description": "Schema for the Typo3 CMS",
+      "fileMatch": ["**/sites/*/config.yaml", "**/sites/*/config.yml"],
+      "url": "https://json.schemastore.org/typo3.json"
+    },
+    {
       "name": "typings.json",
       "description": "Typings TypeScript definitions manager definition file",
       "fileMatch": ["typings.json"],
@@ -4007,7 +4019,12 @@
     {
       "name": "Woodpecker pipeline config",
       "description": "YAML schema for configuring Woodpecker CI",
-      "fileMatch": ["**/.woodpecker/**.yml", "**/.woodpecker.yml"],
+      "fileMatch": [
+        "**/.woodpecker/**.yml",
+        "**/.woodpecker.yml",
+        "**/.woodpecker/**.yaml",
+        "**/.woodpecker.yaml"
+      ],
       "url": "https://raw.githubusercontent.com/woodpecker-ci/woodpecker/master/pipeline/schema/schema.json"
     },
     {
@@ -4029,7 +4046,7 @@
       "url": "https://json.schemastore.org/mboats-config-0.2.json",
       "versions": {
         "0.1": "https://json.schemastore.org/mboats-config-0.1.json",
-        "0.2": "https://json.schemastore.org/mboats-config-0.1.json"
+        "0.2": "https://json.schemastore.org/mboats-config-0.2.json"
       }
     },
     {
@@ -4318,7 +4335,8 @@
       "fileMatch": ["petstore-v1.0.json"],
       "url": "https://json.schemastore.org/petstore-v1.0.json",
       "versions": {
-        "1.0": "https://json.schemastore.org/petstore-v1.0.json"
+        "1.0": "https://json.schemastore.org/petstore-v1.0.json",
+        "0.2": "https://json.schemastore.org/mboats-config-0.2.json"
       }
     },
     {
