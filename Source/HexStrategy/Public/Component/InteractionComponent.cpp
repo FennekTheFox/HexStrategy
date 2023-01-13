@@ -29,7 +29,7 @@ class UWorld* UInteraction::GetWorld() const
 UInteractionComponent::UInteractionComponent()
 {
 	///Script/UMGEditor.WidgetBlueprint'/Game/Blueprint/Components/Interaction/W_InteractionDisplay.W_InteractionDisplay'
-	static ConstructorHelpers::FClassFinder<UUserWidget> InteractionWidgetFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprint/Components/Interaction/W_InteractionDisplay.W_InteractionDisplay_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> InteractionWidgetFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprint/GameplayElements/Interaction/W_InteractionDisplay.W_InteractionDisplay_C'"));
 	if (ensure(InteractionWidgetFinder.Succeeded()))
 	{
 		SetWidgetClass(InteractionWidgetFinder.Class);

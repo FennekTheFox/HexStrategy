@@ -17,7 +17,7 @@ enum class EArmamentType : uint8
 USTRUCT(BlueprintType)
 struct FAttributeScaling
 {
-	GENERATED_BODY()
+	GENERATED_BODY() 
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (ClampMin = 0.f, ClamMax = 2.f))
