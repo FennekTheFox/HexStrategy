@@ -13,14 +13,14 @@ struct FItemManagementData
 
 public:
 	/*The item we're trying to manage*/
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		UItemBase* Item;
 	/*Whether or not*/
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		bool bLimitedNumber = true;
 
 	/*Array for the holder of each item's instance. NAME_None = Player inventory, else its the UnitID*/
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		TArray<FName> ItemHolders;
 
 public:

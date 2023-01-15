@@ -1,27 +1,46 @@
 #include "GameFileData.h"
 
 #include "Items/ItemManagement.h"
+#include "Net/UnrealNetwork.h"
 
-void UGameFileData::AddItemToPlayerInventory(class UItemBase* ItemToAdd, int32 Amount)
+void UGameFileData::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if(!ItemToAdd ||Amount<=0)
-		ensureMsgf(false, TEXT("Tried to add an item of invalid class or amount to player inventory."));
-
-	FItemManagementData& DataRef = PlayerInventory.FindOrAdd(ItemToAdd->ItemID);
-	DataRef.bLimitedNumber = false;
-	DataRef.Item = ItemToAdd;
-	DataRef.AddMultiple(Amount);
+	DOREPLIFETIME(UGameFileData, MetaData);
+	DOREPLIFETIME(UGameFileData, PlayerUnitCharacter);
+	DOREPLIFETIME(UGameFileData, PlayerUnits);
+	DOREPLIFETIME(UGameFileData, PlayerLocation_MapName);
+	DOREPLIFETIME(UGameFileData, PlayerLocation_PawnLocation);
+	DOREPLIFETIME(UGameFileData, PlayerInventory);
+	DOREPLIFETIME(UGameFileData, GameplayFlags);
 }
 
-bool UGameFileData::RemoveItemFromPlayerInventory(class UItemBase* ItemToAdd, int32 Amount)
+void UGameFileData::AddItemToPlayerInventory_Implementation(class UItemBase* ItemToAdd, int32 Amount)
 {
-	FItemManagementData& DataRef = PlayerInventory.FindOrAdd(ItemToAdd->ItemID);
-	if (Amount <= DataRef.GetNumUnheldItems())
-	{
-		DataRef.RemoveMultiple(Amount);
-	}
+	if (!ItemToAdd || Amount <= 0)
+		ensureMsgf(false, TEXT("Tried to add an item of invalid class or amount to player inventory."));
 
-	return false;
+	FItemManagementData* DataPtr = PlayerInventory.FindByPredicate(
+		[ItemToAdd] (const FItemManagementData& Data) {return Data.Item == ItemToAdd;});
+
+	if (!DataPtr)
+	{
+		DataPtr = &PlayerInventory.Emplace_GetRef(FItemManagementData());
+	}
+	
+	DataPtr->bLimitedNumber = false;
+	DataPtr->Item = ItemToAdd;
+	DataPtr->AddMultiple(Amount);
+}
+
+void UGameFileData::RemoveItemFromPlayerInventory_Implementation(class UItemBase* ItemToAdd, int32 Amount)
+{
+	FItemManagementData* DataPtr = PlayerInventory.FindByPredicate(
+		[ItemToAdd](const FItemManagementData& Data) {return Data.Item == ItemToAdd;});
+
+	if (DataPtr && Amount <= DataPtr->GetNumUnheldItems())
+	{
+		DataPtr->RemoveMultiple(Amount);
+	}
 }
 
 bool UGameFileData::DoesPlayerHaveItem(class UItemBase* ItemToAdd, int32 Amount)
@@ -30,40 +49,64 @@ bool UGameFileData::DoesPlayerHaveItem(class UItemBase* ItemToAdd, int32 Amount)
 	return false;
 }
 
-UGameFileRecord* UGameFileData::SerializeToRecord()
-{	
-	UGameFileRecord* Rec = NewObject<UGameFileRecord>();
+void UGameFileData::AddFlag_Implementation(FGameplayTag NewFlag)
+{
+	if (GameplayFlags.HasTagExact(NewFlag)) return;
 
-	Rec->MetaData = MetaData;
-	Rec->PlayerUnitCharacter = FObjectRecord::SerializeObject(PlayerUnitCharacter);
-	
-	for (UUnitData* Data : PlayerUnits)
-	{
-		Rec->PlayerUnits.Add(FObjectRecord::SerializeObject(Data));
-	}
-
-	Rec->PlayerLocation_MapName = PlayerLocation_MapName;
-	Rec->PlayerLocation_PawnLocation = PlayerLocation_PawnLocation;
-	Rec->PlayerInventory = PlayerInventory;
-
-	return Rec;
+	GameplayFlags.AddTag(NewFlag);
 }
 
-UGameFileData* UGameFileData::DeserializeFromRecord(UGameFileRecord* Record)
+bool UGameFileData::HasFlag(FGameplayTag Flag)
 {
-	UGameFileData* Data = NewObject<UGameFileData>();
+	return GameplayFlags.HasTagExact(Flag);
+}
 
-	Data->MetaData = Record->MetaData;
-	Data->PlayerUnitCharacter = Record->PlayerUnitCharacter.DeserializeObject<UUnitData>(Data);
+UGameFile_SaveGameWrapper* UGameFileData::SerializeToWrapper()
+{
+	UGameFile_SaveGameWrapper* Wrapper = NewObject<UGameFile_SaveGameWrapper>();
+	GetRecord(this, Wrapper->InternalRecord);
+	return Wrapper;
+}
 
-	for (FObjectRecord Unit : Record->PlayerUnits)
+void UGameFileData::GetRecord(UGameFileData* Data, FGameFileRecord& OutRecord)
+{
+	if(!ensure((Data))) return;
+
+	OutRecord.MetaData = Data->MetaData;
+	OutRecord.PlayerUnitCharacter = FObjectRecord::SerializeObject(Data->PlayerUnitCharacter);
+
+	for (UUnitData* Data : Data->PlayerUnits)
+	{
+		OutRecord.PlayerUnits.Add(FObjectRecord::SerializeObject(Data));
+	}
+
+	OutRecord.PlayerLocation_MapName = Data->PlayerLocation_MapName;
+	OutRecord.PlayerLocation_PawnLocation = Data->PlayerLocation_PawnLocation;
+	OutRecord.PlayerInventory = Data->PlayerInventory;
+	OutRecord.GameplayFlags = Data->GameplayFlags;
+}
+
+UGameFileData* UGameFileData::ExtractFromWrapper(UGameFile_SaveGameWrapper* Wrapper, UObject* Outer)
+{
+	return FromRecord(Wrapper->InternalRecord, Outer);
+}
+
+UGameFileData* UGameFileData::FromRecord(const FGameFileRecord& Record, UObject* Outer)
+{
+	UGameFileData* Data = NewObject<UGameFileData>(Outer);
+
+	Data->MetaData = Record.MetaData;
+	Data->PlayerUnitCharacter = Record.PlayerUnitCharacter.DeserializeObject<UUnitData>(Data);
+
+	for (FObjectRecord Unit : Record.PlayerUnits)
 	{
 		Data->PlayerUnits.Add(Unit.DeserializeObject<UUnitData>(Data));
 	}
 
-	Data->PlayerLocation_MapName = Record->PlayerLocation_MapName;
-	Data->PlayerLocation_PawnLocation = Record->PlayerLocation_PawnLocation;
-	Data->PlayerInventory = Record->PlayerInventory;
+	Data->PlayerLocation_MapName = Record.PlayerLocation_MapName;
+	Data->PlayerLocation_PawnLocation = Record.PlayerLocation_PawnLocation;
+	Data->PlayerInventory = Record.PlayerInventory;
+	Data->GameplayFlags = Record.GameplayFlags;
 
 	return Data;
 }

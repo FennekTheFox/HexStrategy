@@ -17,7 +17,7 @@ public:
 
 	// class that this object is
 	UPROPERTY(BlueprintReadWrite)
-		FString ClassName;
+		FSoftClassPath ClassName;
 	UPROPERTY(BlueprintReadWrite)
 		TArray<uint8> Data;
 
@@ -27,7 +27,7 @@ public:
 		{
 			FObjectRecord  Rec;
 			UClass* ObjectClass = Object->GetClass();
-			ObjectClass->GetName(Rec.ClassName);
+			Rec.ClassName = FSoftClassPath(ObjectClass);
 
 			//uses memory WRITER to SERIALIZE the object and WRITE the data
 			FMemoryWriter MemAr(Rec.Data);
@@ -48,7 +48,7 @@ public:
 		//UE_LOG(LogTemp, Log, TEXT("Trying to find class of name \"%s\""), *ClassName);
 
 		//Try to find the class (Q: what if the class hasnt been loaded yet?)
-		if (UClass* ObjectClass = FindObject<UClass>(nullptr, *ClassName))
+		if (UClass* ObjectClass = ClassName.TryLoadClass<UUnitData>())
 		{
 			UObject* Out = NewObject<UObject>(Outer, ObjectClass);
 
