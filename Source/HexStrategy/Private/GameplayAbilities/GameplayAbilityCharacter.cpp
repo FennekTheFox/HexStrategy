@@ -23,7 +23,11 @@ AUnitBase::AUnitBase()
 	//GameplayAttributes = CreateDefaultSubobject<UGAS_UnitAttributeSet>("Attributes");
 	//AbilitySystemComponent->AddAttributeSetSubobject(GameplayAttributes.Get());
 
-	bReplicates = true;
+	PrimaryActorTick.bCanEverTick = true;
+	SetReplicateMovement(true);
+	SetReplicates(true);
+	bAlwaysRelevant = true;
+
 	NetUpdateFrequency = 100.0f;
 }
 

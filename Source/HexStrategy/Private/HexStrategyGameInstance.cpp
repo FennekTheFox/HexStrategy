@@ -2,7 +2,7 @@
 #include "SaveGame/GameFileData.h"
 
 
-void UHexStrategyGameInstance::SetUsedPlayerData(UGameFileData* NewPlayerData)
+void UHexStrategyGameInstance::SetUsedPlayerData(UGameFileData_DataAsset* NewPlayerData)
 {
 	LocalPlayerData = NewPlayerData;
 	//LocalPlayerData->LoadData();

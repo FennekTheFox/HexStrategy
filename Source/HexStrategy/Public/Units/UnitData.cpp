@@ -28,7 +28,7 @@ void UUnitData::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitEquippedItems, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitInventory, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitExperiencePoints, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitProfessionProgress, COND_None, REPNOTIFY_Always);
+	//DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, UnitProfessionProgress, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, SlottedAbilities, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, LearnedAbilities, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, EquipmentAbilities, COND_None, REPNOTIFY_Always);

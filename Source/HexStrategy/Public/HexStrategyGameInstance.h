@@ -24,11 +24,11 @@ class UHexStrategyGameInstance : public UGameInstance
 
 	//Tells the game instance which locally loaded player data we are using
 	UFUNCTION(BlueprintCallable)
-		void SetUsedPlayerData(UGameFileData* NewPlayerData);
+		void SetUsedPlayerData(UGameFileData_DataAsset* NewPlayerData);
 
 //What does the game instance need to know?
 public:
 	//The save file data for the local player
 	UPROPERTY(BlueprintReadWrite)
-		class UGameFileData* LocalPlayerData;
+		class UGameFileData_DataAsset* LocalPlayerData;
 };

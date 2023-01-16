@@ -35,56 +35,58 @@ public:
 
 
 	void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool IsSupportedForNetworking() const override { return true; }
 
 public:
 	//The units full name
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit")
 		FText UnitName;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit")
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit")
 		FName UnitID;
 
 	//The specific values used to tweak racial appearance
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)
 		FUnitBodyData UnitBodyData;
 	//The class template which this unit uses
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta = (AllowedClasses = "UnitProfession"))
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame, meta = (AllowedClasses = "UnitProfession"))
 		FSoftObjectPath UnitProfession;
 
 	//The units attributes
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Attributes", SaveGame)
 		FUnitAttributeBlock Attributes;
 
 	/*The unit's equiped items*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Items", SaveGame)
 		FUnitEquipment UnitEquippedItems;
 	/*The unit's carried items*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Items", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Items", SaveGame)
 		FUnitInvenotry UnitInventory;
 
 	/*The number of experience points earned by this unit*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Progression", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Progression", SaveGame)
 		int32 UnitExperiencePoints;
 	/*The list of levels and exp gained for all professions of this unit*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Progression", SaveGame)
-		TMap<FName, FUnitProfessionProgress> UnitProfessionProgress;
+	//temporarily removed because replication does not support tmaps
+	//UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Progression", SaveGame)
+		//TMap<FName, FUnitProfessionProgress> UnitProfessionProgress;
 
 	/*The Abilities the unit has slotted as its active abilities*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
 		TArray<FGameplayAbilitySpecDef> SlottedAbilities;
 	/*The Abilities the unit has learned*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
 		TArray<FGameplayAbilitySpecDef> LearnedAbilities;
 	/*The list of abilities granted to the unit by its equipment*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Abilities", SaveGame)
 		TArray<FGameplayAbilitySpecDef> EquipmentAbilities;
 
 
 
 	//The point in time when the unit has been recruited
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta", SaveGame)
 		FDateTime JoinedDateTime;
 	//The point in time when the unit has last been used
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta", SaveGame)
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Meta", SaveGame)
 		FDateTime LastUsedDateTime;
 
 

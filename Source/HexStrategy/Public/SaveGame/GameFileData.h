@@ -61,7 +61,6 @@ public:
 		TArray<FItemManagementData> PlayerInventory;
 };
 
-
 /*A USaveGame wrapper for the client side representation of the player's game file data*/
 UCLASS(BlueprintType)
 class UGameFile_SaveGameWrapper : public USaveGame
@@ -73,18 +72,20 @@ public:
 };
 
 
-/*The runtime object that describes the game state. This object will only exist on server side.*/
+/*The info actor (for replication purposes) that contains the player data*/
 UCLASS(BlueprintType)
-class UGameFileData : public UDataAsset
+class APlayerGameFileData : public AInfo
 {
 	GENERATED_BODY()
 
+	APlayerGameFileData();
+
 public:
 	/*Meta Data describing the save game object*/
-	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData", meta=(ExposeOnSpawn))
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
 		FGameFileMetaData MetaData;
 	//The player's personal unit
-	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData", meta = (ExposeOnSpawn))
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
 		UUnitData* PlayerUnitCharacter;
 	//The list of units at the players disposal
 	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
@@ -101,44 +102,13 @@ public:
 		TArray<FItemManagementData> PlayerInventory;
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere, Category = "PlayerData|Flags")
 		FGameplayTagContainer GameplayFlags;
-		
-		
-
-
 
 public:
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool IsSupportedForNetworking() const override { return true; }
-	//virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
-	
-	UFUNCTION(BlueprintPure, Category = "Replicated UObject")
-		AActor* GetOwningActor() const
-	{
-		return GetTypedOuter<AActor>();
-	}
-	virtual int32 GetFunctionCallspace(UFunction* Function, FFrame* Stack) override
-	{
-		check(GetOuter() != nullptr);
-		return GetOuter()->GetFunctionCallspace(Function, Stack);
-	}
+	bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
-	// Call "Remote" (aka, RPC) functions through the actors NetDriver
-	virtual bool CallRemoteFunction(UFunction* Function, void* Parms, struct FOutParmRec* OutParms, FFrame* Stack) override
-	{
-		check(!HasAnyFlags(RF_ClassDefaultObject));
-		AActor* Owner = GetOwningActor();
-		UNetDriver* NetDriver = Owner->GetNetDriver();
-		if (NetDriver)
-		{
-			NetDriver->ProcessRemoteFunction(Owner, Function, Parms, OutParms, Stack, this);
-			return true;
-		}
-		return false;
-	}
-	/** IsNameStableForNetworking means an object can be referred to its path name (relative to outer) over the network */
-	virtual bool IsNameStableForNetworking() const {return true;};
-
-
+public:
 	/*Requests adding an item to the inventory on the server side*/
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "GameFileData")
 		void AddItemToPlayerInventory(class UItemBase* ItemToAdd, int32 Amount);
@@ -161,15 +131,63 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GameFileData")
 		bool HasFlag(FGameplayTag Flag);
 
+
+
+	/*Turns the data object into a serializable save game object*/
+	UFUNCTION(BlueprintPure, Category = "GameFileData|Serialization")
+		UGameFile_SaveGameWrapper* SerializeToWrapper();
+	/*Creates a Game data object from a serialized record*/
+	UFUNCTION(BlueprintCallable, Category = "GameFileData|Serialization")
+		void InitializeFromRecord(UPARAM(ref)const FGameFileRecord& Record);
+	UFUNCTION(BlueprintPure, Category = "GameFileData|Serialization")
+		void GetRecord(FGameFileRecord& OutRecord);
+protected:
+	void BeginPlay() override;
+
+};
+
+
+
+
+/*A data asset for testing purposes.*/
+UCLASS(BlueprintType)
+class UGameFileData_DataAsset : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	/*Meta Data describing the save game object*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+		FGameFileMetaData MetaData;
+	//The player's personal unit
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+		UUnitData* PlayerUnitCharacter;
+	//The list of units at the players disposal
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+		TArray<UUnitData*> PlayerUnits;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData|Location")
+		FName PlayerLocation_MapName;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData|Location")
+		FVector PlayerLocation_PawnLocation;
+
+	/*The players inventory, denoting each item in his posession, how many he has and which unit holds them*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData|Items")
+		TArray<FItemManagementData> PlayerInventory;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "PlayerData|Flags")
+		FGameplayTagContainer GameplayFlags;	
+
+public:
 	/*Turns the data object into a serializable save game object*/
 	UFUNCTION(BlueprintPure, Category = "GameFileData|Serialization")
 		UGameFile_SaveGameWrapper* SerializeToWrapper();
 	UFUNCTION(BlueprintPure, Category = "GameFileData|Serialization")
-		static void GetRecord(UGameFileData* Data, FGameFileRecord& OutRecord);
+		static void GetRecord(UGameFileData_DataAsset* Data, FGameFileRecord& OutRecord);
 	/*Creates a Game data object from a serialized record*/
 	UFUNCTION(BlueprintPure, Category = "GameFileData|Serialization")
-		static UGameFileData* ExtractFromWrapper(UGameFile_SaveGameWrapper* Wrapper, UObject* Outer);
+		static UGameFileData_DataAsset* ExtractFromWrapper(UGameFile_SaveGameWrapper* Wrapper, UObject* Outer);
 	/*Creates a Game data object from a serialized record*/
 	UFUNCTION(BlueprintPure, Category = "GameFileData|Serialization")
-		static UGameFileData* FromRecord(UPARAM(ref)const FGameFileRecord& Record, UObject* Outer);
+		static UGameFileData_DataAsset* FromRecord(UPARAM(ref)const FGameFileRecord& Record, UObject* Outer);
 };
