@@ -67,8 +67,9 @@ class UGameFile_SaveGameWrapper : public USaveGame
 {
 	GENERATED_BODY()
 
-public:
-	FGameFileRecord InternalRecord;
+public:	
+	UPROPERTY(SaveGame)
+		FGameFileRecord InternalRecord;
 };
 
 
@@ -102,6 +103,9 @@ public:
 		TArray<FItemManagementData> PlayerInventory;
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere, Category = "PlayerData|Flags")
 		FGameplayTagContainer GameplayFlags;
+
+
+	bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const override;
 
 public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -157,10 +161,10 @@ class UGameFileData_DataAsset : public UDataAsset
 
 public:
 	/*Meta Data describing the save game object*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData", meta=(ExposeOnSpawn))
 		FGameFileMetaData MetaData;
 	//The player's personal unit
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData", meta = (ExposeOnSpawn))
 		UUnitData* PlayerUnitCharacter;
 	//The list of units at the players disposal
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")

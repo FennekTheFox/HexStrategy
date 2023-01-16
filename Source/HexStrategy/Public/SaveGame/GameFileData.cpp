@@ -11,6 +11,13 @@ APlayerGameFileData::APlayerGameFileData()
 	bIsSpatiallyLoaded = false;
 }
 
+bool APlayerGameFileData::IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const
+{
+	Super::IsNetRelevantFor(RealViewer, ViewTarget, SrcLocation);
+
+	return true;
+}
+
 void APlayerGameFileData::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	DOREPLIFETIME(APlayerGameFileData, MetaData);
