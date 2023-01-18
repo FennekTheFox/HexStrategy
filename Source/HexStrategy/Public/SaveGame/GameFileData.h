@@ -2,6 +2,7 @@
 
 
 #include "GameFramework/SaveGame.h"
+#include "GameFramework/PlayerState.h"
 #include "Units/UnitData.h"
 #include "Items/ItemBase.h"
 #include "Items/ItemManagement.h"
@@ -68,14 +69,14 @@ class UGameFile_SaveGameWrapper : public USaveGame
 	GENERATED_BODY()
 
 public:	
-	UPROPERTY(SaveGame)
+	UPROPERTY(BlueprintReadOnly, SaveGame)
 		FGameFileRecord InternalRecord;
 };
 
 
 /*The info actor (for replication purposes) that contains the player data*/
 UCLASS(BlueprintType)
-class APlayerGameFileData : public AInfo
+class APlayerGameFileData : public APlayerState
 {
 	GENERATED_BODY()
 
