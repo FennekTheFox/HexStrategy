@@ -24,7 +24,7 @@ struct FHairStypeOption
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		class UHairStyle* Colour;
+		class UHairStyle* HairStyle;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		float Weight = 1.f;
 };
@@ -85,6 +85,8 @@ public:
 		FName OptionID;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
 		TArray<FSubBodyTypeOptions> Suboptions;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FGameplayTagContainer SuperBodyTypeTags;
 };
 
 
@@ -113,6 +115,10 @@ public:
 public:
 	UFUNCTION(BlueprintPure)
 		UBodyTypeAppearanceData* FindAppearanceData(FName SuperBodyType, FName SubBodyType);
+	UFUNCTION(BlueprintPure)
+		FName GetSuperBodyTypeIDForAppearance(UBodyTypeAppearanceData* Appearance);
+	UFUNCTION(BlueprintPure)
+		FName GetSubBodyTypeIDForAppearance(UBodyTypeAppearanceData* Appearance);
 };
 
 
@@ -150,5 +156,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TArray<FHairStypeOption> PossibleHairStyles;
 
-	//TODO: 
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+		FGameplayTagContainer BodyTypeTags;
+
 };

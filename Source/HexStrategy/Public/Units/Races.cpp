@@ -19,3 +19,33 @@ UBodyTypeAppearanceData* UUnitRace::FindAppearanceData(FName SuperBodyType, FNam
 
 	return nullptr;
 }
+
+FName UUnitRace::GetSuperBodyTypeIDForAppearance(UBodyTypeAppearanceData* Appearance)
+{
+	for (auto& SuperOpt : BodyTypeOptions)
+	{
+		for (auto& SubOpt : SuperOpt.Suboptions)
+		{
+			if (SubOpt.Appearance == Appearance)
+			{
+				return SuperOpt.OptionID;
+			}
+		}
+	}
+	return NAME_None;
+}
+
+FName UUnitRace::GetSubBodyTypeIDForAppearance(UBodyTypeAppearanceData* Appearance)
+{
+	for (auto& SuperOpt : BodyTypeOptions)
+	{
+		for (auto& SubOpt : SuperOpt.Suboptions)
+		{
+			if (SubOpt.Appearance == Appearance)
+			{
+				return SubOpt.OptionID;
+			}
+		}
+	}
+	return NAME_None;
+}
