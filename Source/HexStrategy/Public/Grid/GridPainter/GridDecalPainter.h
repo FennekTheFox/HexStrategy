@@ -3,16 +3,23 @@
 #include "GridPainter.h"
 #include "GridDecalPainter.generated.h"
 
-UCLASS(BlueprintType)
+UCLASS(BlueprintType, Blueprintable, EditInlineNew)
 class UGridDecalPainter : public UGridPainter
 {
 	GENERATED_BODY()
 
 public:
 	UGridDecalPainter();
+	~UGridDecalPainter();
+
+
+	void UpdateGrid() override;
+
+
+	//void OnDestroy() override;
 
 protected:
-	virtual void UpdateTile(AGridTile* Tile) override;
+	virtual void UpdateTile(UGridTile* Tile) override;
 	virtual void Clear() override;
 
 	FRotator GetTileDecalRotation();

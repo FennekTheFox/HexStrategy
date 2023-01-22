@@ -2,32 +2,10 @@
 
 #include "UnitPortraits.h"
 #include "UnitBodyType.h"
+#include "UnitOptions.h"
+
 #include "Races.generated.h"
 
-
-USTRUCT(BlueprintType)
-struct FColourOption
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		FLinearColor Colour = FLinearColor(.5f, .5f, .5f, .7f);
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		float Weight = 1.f;
-};
-
-USTRUCT(BlueprintType)
-struct FHairStypeOption
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		class UHairStyle* HairStyle;
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		float Weight = 1.f;
-};
 
 /*Struct outlining the appearance of a unit
 In combination with the pointer to the race data asset this should be enough to

@@ -15,7 +15,7 @@ bool FWidthSearchHelper::Step()
 	if (OpenSet.Num() == 0)
 		return false;
 
-	AGridTile* Current = nullptr;
+	UGridTile* Current = nullptr;
 
 
 	OpenSet.HeapPop(Current, Comparer);
@@ -24,7 +24,7 @@ bool FWidthSearchHelper::Step()
 
 	for (auto&& KVPair : Current->ConnectedTiles)
 	{
-		AGridTile* UndiscoveredNeighbour = KVPair.Key;
+		UGridTile* UndiscoveredNeighbour = Grid->FindTileByCoordinates(KVPair.Key);
 
 		if (ReachedTiles.Contains(UndiscoveredNeighbour)) continue;
 		//If we cant pass through the tile because it is occupied, dont consider it a valid tile for a path
@@ -49,7 +49,7 @@ bool FWidthSearchHelper::Step()
 }
 
 
-void FWidthSearchHelper::GetAllReachableTiles(TArray<AGridTile*>& OutTiles)
+void FWidthSearchHelper::GetAllReachableTiles(TArray<UGridTile*>& OutTiles)
 {
 	OutTiles = ReachedTiles.Array();
 }
@@ -61,7 +61,7 @@ bool FAStarHelper::Step()
 	if (OpenSet.Num() == 0)
 		return false;
 
-	AGridTile* Current = nullptr;
+	UGridTile* Current = nullptr;
 
 	OpenSet.HeapPop(Current, Comparer);
 
@@ -75,7 +75,7 @@ bool FAStarHelper::Step()
 
 	for (auto&& KVPair : Current->ConnectedTiles)
 	{
-		AGridTile* UndiscoveredNeighbour = KVPair.Key;
+		UGridTile * UndiscoveredNeighbour = Grid->FindTileByCoordinates(KVPair.Key);;
 
 		if (CloseSet.Contains(UndiscoveredNeighbour)) continue;
 		//If we cant pass through the tile because it is occupied, dont consider it a valid tile for a path
@@ -105,9 +105,9 @@ bool FAStarHelper::Step()
 
 
 
-void FAStarHelper::CollectPath(TArray<AGridTile*>& Result) const
+void FAStarHelper::CollectPath(TArray<UGridTile*>& Result) const
 {
-	AGridTile* Current = Goal;
+	UGridTile* Current = Goal;
 
 	Result.AddUnique(Current);
 
@@ -118,7 +118,7 @@ void FAStarHelper::CollectPath(TArray<AGridTile*>& Result) const
 	}
 }
 
-int32 FAStarHelper::DistanceHeuristic(AGridTile* Probe, AGridTile* Target)
+int32 FAStarHelper::DistanceHeuristic(UGridTile* Probe, UGridTile* Target)
 {
 	//int32 MovementDistance = UGridUtilityLibrary::GetHexDistance(Probe->Coords, Target->Coords);
 
@@ -141,12 +141,12 @@ UGridPathFinderAgent::~UGridPathFinderAgent()
 
 }
 
-AGridTile* UGridPathFinderAgent::GetStart() const
+UGridTile* UGridPathFinderAgent::GetStart() const
 {
 	return Request.Start;
 }
 
-AGridTile* UGridPathFinderAgent::GetDestination() const
+UGridTile* UGridPathFinderAgent::GetDestination() const
 {
 	return Request.Goal;
 }
@@ -168,32 +168,32 @@ const FGameplayTagContainer& UGridPathFinderAgent::GetExtraTags() const
 
 bool UGridPathFinderAgent::IsReachable_Implementation(const FGridPathFinderRequest InRequest)
 {
-	TArray<AGridTile*> trash;
+	TArray<UGridTile*> trash;
 	return FindPath(InRequest, trash);
 }
 
-int32 UGridPathFinderAgent::GetCost_Implementation(AGridTile* From, AGridTile* To)
+int32 UGridPathFinderAgent::GetCost_Implementation(UGridTile* From, UGridTile* To)
 {
 	return UGridUtilityLibrary::GetHexDistance_FromTiles(From, To);
 };
 
 
-int32 UGridPathFinderAgent::Heuristic_Implementation(AGridTile* From, AGridTile* To)
+int32 UGridPathFinderAgent::Heuristic_Implementation(UGridTile* From, UGridTile* To)
 {
 	return GetCost(From, To);
 }
 
-bool UGridPathFinderAgent::CanPassThroughTile_Implementation(AGridTile* FromTile, AGridTile* ToTile)
+bool UGridPathFinderAgent::CanPassThroughTile_Implementation(UGridTile* FromTile, UGridTile* ToTile)
 {
 	return true;
 }
 
-bool UGridPathFinderAgent::CanStandOnTile_Implementation(AGridTile* Tile)
+bool UGridPathFinderAgent::CanStandOnTile_Implementation(UGridTile* Tile)
 {
 	return true;
 }
 
-bool UGridPathFinderAgent::FindPath(const FGridPathFinderRequest InRequest, TArray<AGridTile*>& Path)
+bool UGridPathFinderAgent::FindPath(const FGridPathFinderRequest InRequest, TArray<UGridTile*>& Path)
 {
 	Request = InRequest;
 
@@ -265,14 +265,14 @@ bool UGridPathFinderAgent::FindPath(const FGridPathFinderRequest InRequest, TArr
 	return Success;
 }
 
-void UGridPathFinderAgent::GetReachableTiles(const FGridPathFinderRequest InRequest, TArray<AGridTile*>& Result)
+void UGridPathFinderAgent::GetReachableTiles(const FGridPathFinderRequest InRequest, TArray<UGridTile*>& Result)
 {
 	Request = InRequest;
 
 	Result.Reset();
 
 
-	TArray<AGridTile*> OpenSet, ClosedSet;
+	TArray<UGridTile*> OpenSet, ClosedSet;
 	OpenSet.Add(Request.Start);
 
 	FWidthSearchHelper Helper(InRequest.Start, InRequest.GridActor, this);
@@ -315,9 +315,9 @@ bool FGridPathFinderRequest::IsValid()
 
 #pragma optimize( "", on )
 
-void UGridPathFinderAgent::JumpingRequired_Implementation(AGridTile* From, AGridTile* To, bool& JumpingRequired, float& UpperBound, bool bDrawDebug)
+void UGridPathFinderAgent::JumpingRequired_Implementation(UGridTile* From, UGridTile* To, bool& JumpingRequired, float& UpperBound, bool bDrawDebug)
 {
-	FConnectedTileData* ConnectionData = From->ConnectedTiles.Find(To);
+	FConnectedTileData* ConnectionData = From->ConnectedTiles.Find(To->Coordinates);
 	if (ConnectionData)
 	{
 		JumpingRequired = ConnectionData->bRequiresJump;
@@ -327,7 +327,7 @@ void UGridPathFinderAgent::JumpingRequired_Implementation(AGridTile* From, AGrid
 
 #pragma optimize( "", off )
 
-bool UGridMovementAgent::CanPassThroughTile_Implementation(AGridTile* FromTile, AGridTile* ToTile)
+bool UGridMovementAgent::CanPassThroughTile_Implementation(UGridTile* FromTile, UGridTile* ToTile)
 {
 	bool ret = true;
 	//Check for occupation 
@@ -339,7 +339,7 @@ bool UGridMovementAgent::CanPassThroughTile_Implementation(AGridTile* FromTile, 
 	return ret;
 }
 
-bool UGridMovementAgent::CanStandOnTile_Implementation(AGridTile* Tile)
+bool UGridMovementAgent::CanStandOnTile_Implementation(UGridTile* Tile)
 {
 	bool ret = true;
 	//Check for occupation 
@@ -350,7 +350,7 @@ bool UGridMovementAgent::CanStandOnTile_Implementation(AGridTile* Tile)
 	return ret;
 }
 
-bool FAStarHelper::FComparer::operator()(const AGridTile& L, const AGridTile& R) const
+bool FAStarHelper::FComparer::operator()(const UGridTile& L, const UGridTile& R) const
 {
 	int32 LFCost = FCost->Contains(&L) ? FCost->FindChecked(&L) : TNumericLimits<int32>::Max();
 	int32 RFCost = FCost->Contains(&R) ? FCost->FindChecked(&R) : TNumericLimits<int32>::Max();

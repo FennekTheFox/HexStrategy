@@ -45,9 +45,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, reliable)
 		void DetachFromGrid(AGridActor* InGrid = nullptr);
 	UFUNCTION(Server, reliable, BlueprintCallable)
-		void MoveToTile(AGridTile* TargetTile);
+		void MoveToTile(UGridTile* TargetTile);
 	UFUNCTION(BlueprintCallable)
-		bool GetPathTo(AGridTile* TargetTile, TArray<AGridTile*>& OutPath);
+		bool GetPathTo(UGridTile* TargetTile, TArray<UGridTile*>& OutPath);
 	UFUNCTION(BlueprintCallable)
 		void AbortMovement();
 	UFUNCTION(BlueprintCallable)
@@ -55,13 +55,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ResumeMovement();
 	UFUNCTION(BlueprintPure)
-		bool CanMoveToTile(AGridTile* TargetTile, TArray<AGridTile*>& PotentialPath);
+		bool CanMoveToTile(UGridTile* TargetTile, TArray<UGridTile*>& PotentialPath);
 	UFUNCTION(BlueprintPure)
-		bool CanPassTile(AGridTile* InTile);
+		bool CanPassTile(UGridTile* InTile);
 	UFUNCTION(BlueprintPure)
 		bool LetsThisPass(UGridMovementComponent* InGMC);
 	UFUNCTION(BlueprintPure)
-		void GetAllReachableTiles(TArray<AGridTile*>& ReachableTiles);
+		void GetAllReachableTiles(TArray<UGridTile*>& ReachableTiles);
 	UFUNCTION(BlueprintCallable)
 		void SetShowMovableArea(bool bShow);
 
@@ -132,7 +132,7 @@ public:
 
 public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Replicated, Category = "Movement Query")
-		AGridTile* CurrentTile;
+		UGridTile* CurrentTile;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Replicated, Category = "Movement Query")
 		AGridActor* Grid;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement Query")
@@ -154,21 +154,21 @@ private:
 	bool bPaused = false;
 	bool bAwaitingCallback = false;
 	float UpperBound = 0.f;
-	TArray<AGridTile*> PathToTravel;
-	AGridTile* NextTile;
+	TArray<UGridTile*> PathToTravel;
+	UGridTile* NextTile;
 	FVector NextTileLoc;
 	FVector CurrentTileLoc;
 	float MovementDuration;
 	float TimePassed;
-	TArray<AGridTile*> ShownReachableTiles;
+	TArray<UGridTile*> ShownReachableTiles;
 	float JumpGap = 0.f;
 
 	//TODO: CachedMovable needs to reset every time a unit on the grid moves. Callback from Occupy/Leave?
 	bool bReachableTilesCached = false;
 	UPROPERTY()
-		AGridTile* ReachableTilesCacheOrigin = nullptr;
+		UGridTile* ReachableTilesCacheOrigin = nullptr;
 	UPROPERTY()
-		TArray<AGridTile*> CachedReachableTiles;
+		TArray<UGridTile*> CachedReachableTiles;
 	int32 CacheMovementRadius;
 
 protected:

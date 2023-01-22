@@ -10,9 +10,10 @@ TStatId UUnitAbilityVisualizer::GetStatId() const
 	return GetStatID();
 }
 
-bool UUnitAbilityVisualizer::IsTickable() const
+
+ETickableTickType UUnitAbilityVisualizer::GetTickableTickType() const
 {
-	return this != this->GetClass()->GetDefaultObject();
+	return IsTemplate() ? ETickableTickType::Never : FTickableGameObject::GetTickableTickType();
 }
 
 bool UUnitAbilityVisualizer::IsTickableInEditor() const
@@ -22,15 +23,15 @@ bool UUnitAbilityVisualizer::IsTickableInEditor() const
 
 bool UUnitAbilityVisualizer::IsAllowedToTick() const
 {
-	return !IsTemplate(); ;
+	return !IsTemplate() &&  !IsUnreachable();
 }
 
-void UUnitAbilityVisualizer::UpdateVisualization_Implementation(AGridTile* PotentialTarget)
+void UUnitAbilityVisualizer::UpdateVisualization_Implementation(UGridTile* PotentialTarget)
 {
 
 }
 
-void UUnitAbilityVisualizer::ShowHoveredVisualization_Implementation(AGridTile* PotentialTarget)
+void UUnitAbilityVisualizer::ShowHoveredVisualization_Implementation(UGridTile* PotentialTarget)
 {
 
 }

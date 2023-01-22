@@ -65,6 +65,8 @@ void UGridMovementComponent::AttachToGrid_Implementation(AGridActor* NewGrid)
 		Grid = Cast<AGridActor>(UGameplayStatics::GetActorOfClass(this, AGridActor::StaticClass()));
 	}
 
+	if(!ensure(Grid))return;
+
 	//Initialise the path finders reference to the grid
 	NextTile = Grid->GetTileClosestToCoordinates(GetOwner()->GetActorLocation());
 	NextTile->PreoccupyTile(GetOwner());
@@ -75,7 +77,7 @@ void UGridMovementComponent::AttachToGrid_Implementation(AGridActor* NewGrid)
 	if (ensure(AIC))
 	{
 		AIC->ReceiveMoveCompleted.AddDynamic(this, &UGridMovementComponent::MovementCompletedCallback);
-		RequestMoveToLocation(NextTile->GetActorLocation());
+		RequestMoveToLocation(NextTile->WorldLocation);
 	}
 
 }
@@ -100,7 +102,7 @@ void UGridMovementComponent::DetachFromGrid_Implementation(AGridActor* InGrid /*
 	}
 }
 
-void UGridMovementComponent::MoveToTile_Implementation(AGridTile* TargetTile)
+void UGridMovementComponent::MoveToTile_Implementation(UGridTile* TargetTile)
 {
 	ensure(PathFinder);
 	ensure(TargetTile);
@@ -114,7 +116,7 @@ void UGridMovementComponent::MoveToTile_Implementation(AGridTile* TargetTile)
 		return;
 	}
 
-	TArray<AGridTile*>Path;
+	TArray<UGridTile*>Path;
 
 	FGridPathFinderRequest Request;
 	Request.GridActor = Grid;
@@ -140,7 +142,7 @@ void UGridMovementComponent::MoveToTile_Implementation(AGridTile* TargetTile)
 
 
 
-bool UGridMovementComponent::GetPathTo(AGridTile* TargetTile, TArray<AGridTile*>& OutPath)
+bool UGridMovementComponent::GetPathTo(UGridTile* TargetTile, TArray<UGridTile*>& OutPath)
 {
 	ensure(PathFinder);
 	ensure(TargetTile);
@@ -173,13 +175,13 @@ void UGridMovementComponent::ResumeMovement()
 	bPaused = false;
 }
 
-bool UGridMovementComponent::CanMoveToTile(AGridTile* TargetTile, TArray<AGridTile*>& PotentialPath)
+bool UGridMovementComponent::CanMoveToTile(UGridTile* TargetTile, TArray<UGridTile*>& PotentialPath)
 {
 	if (TargetTile == CurrentTile) return false;
 
 	ensure(PathFinder);
 
-	TArray<AGridTile*> trash;
+	TArray<UGridTile*> trash;
 	GetAllReachableTiles(trash);
 
 	if (trash.Contains(TargetTile))
@@ -201,7 +203,7 @@ bool UGridMovementComponent::CanMoveToTile(AGridTile* TargetTile, TArray<AGridTi
 	return false;
 }
 
-bool UGridMovementComponent::CanPassTile(AGridTile* InTile)
+bool UGridMovementComponent::CanPassTile(UGridTile* InTile)
 {
 	AActor* OccupyingUnit = InTile->GetOccupyingUnit();
 
@@ -247,7 +249,7 @@ bool UGridMovementComponent::LetsThisPass(UGridMovementComponent* InGMC)
 	return false;
 }
 
-void UGridMovementComponent::GetAllReachableTiles(TArray<AGridTile*>& ReachableTiles)
+void UGridMovementComponent::GetAllReachableTiles(TArray<UGridTile*>& ReachableTiles)
 {
 	ReachableTiles.Reset();
 
@@ -287,14 +289,14 @@ void UGridMovementComponent::SetShowMovableArea(bool bShow)
 		SetShowMovableArea(false);
 		GetAllReachableTiles(ShownReachableTiles);
 
-		for (AGridTile* Tile : ShownReachableTiles)
+		for (UGridTile* Tile : ShownReachableTiles)
 		{
 			//Tile->SetTileState(this, ETileState::ShowAsMovable, ETileStateLayers::HoverMovement);
 		}
 	}
 	else
 	{
-		for (AGridTile* Tile : ShownReachableTiles)
+		for (UGridTile* Tile : ShownReachableTiles)
 		{
 			//Tile->ResetTileState(this);
 		}
@@ -325,7 +327,7 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 		NextTile = PathToTravel.Pop();
 		
 		if(ensure(AIC))
-			AIC->MoveToLocation(NextTile->GetActorLocation(), 1, false, false);
+			AIC->MoveToLocation(NextTile->WorldLocation, 1, false, false);
 
 
 		//Set to travel to next tile
@@ -333,7 +335,7 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 		//NextTile = PathToTravel.Pop();
 		//NextTileLoc = NextTile->GetActorLocation();
 
-		bool bJumpingRequired = CurrentTile->ConnectedTiles.Find(NextTile)->bRequiresJump;
+		bool bJumpingRequired = CurrentTile->ConnectedTiles.Find(NextTile->Coordinates)->bRequiresJump;
 		MovementState = (bJumpingRequired ? PreJump : Walking);
 
 		MovementDuration = ((CurrentTileLoc - NextTileLoc).Size() / MovementSpeed) * (bJumpingRequired ? 2.5f : 1.0f);
@@ -386,7 +388,7 @@ void UGridMovementComponent::RequestMoveToLocation(FVector Location)
 
 	if (ensure(AIC))
 	{
-		AIC->MoveToLocation(NextTile->GetActorLocation(), 1, false, false);
+		AIC->MoveToLocation(NextTile->WorldLocation, 1, false, false);
 	}
 }
 

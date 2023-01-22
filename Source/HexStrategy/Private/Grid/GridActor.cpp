@@ -5,6 +5,10 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Libraries/GridUtilityLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/ActorChannel.h"
+#include "Net/DataBunch.h"
+#include "Grid/GridBuilders.h"
+#include "../Plugins/Editor/EditorScriptingUtilities/Source/EditorScriptingUtilities/Public/EditorAssetLibrary.h"
 
 
 #define SQRT_THREE_HALVED 0.866f
@@ -23,7 +27,6 @@ FIntVector(1, -1, 0)
 AGridActor::AGridActor()
 {
 	//PrimaryActorTick.bCanEverTick = true;
-	if (GridPainterClass == nullptr) GridPainterClass = UGridPainter::StaticClass();
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
 
 	bReplicates = true;
@@ -36,42 +39,51 @@ void AGridActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	//DOREPLIFETIME_CONDITION_NOTIFY(AGridActor, bIsActive, COND_None, REPNOTIFY_Always);
 }
 
+bool AGridActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+
+	bool bWroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+
+	bWroteSomething |= Channel->ReplicateSubobjectList(GridTiles, *Bunch, *RepFlags);
+
+	return bWroteSomething;
+}
+
+void AGridActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if(PropertyChangedEvent.)
+}
+
 void AGridActor::SetIsActive_Implementation(bool bNewActive)
 {
 	bIsActive = bNewActive;
-	GridPainter->UpdateGrid();
+
+	if(GridPainter)
+	{
+		GridPainter->SetGrid(this);
+		GridPainter->UpdateGrid();
+	}
 }
 
-//
-//void AGridActor::OnRep_IsActive(bool newIsActive)
-//{
-//	bIsActive = newIsActive;
-//	GridPainter->UpdateGrid();
-//}
+class UGridTile* AGridActor::FindTileByCoordinates(FIntVector InCoordintates)
+{
+	for (UGridTile* Tile : GridTiles)
+	{
+		if (Tile->Coordinates == InCoordintates)
+			return Tile;
+	}
+
+	return nullptr;
+}
+
 
 void AGridActor::OnConstruction(const FTransform& Transform)
 {
-	if (!GridPainter || GridPainter->GetClass() != GridPainterClass)
-	{
-		GridPainter = NewObject<UGridPainter>(this, GridPainterClass);
-		GridPainter->SetGrid(this);
-	}
-
-	if (Bake || BakeOnConstruction)
-	{
-		Bake = false;
-
-		RegenerateGrid();
-	}
 }
 
-void AGridActor::RefreshProperties()
-{
-	for (ETileDisplayState State : TEnumRange<ETileDisplayState>())
-	{
-		GridPainterConfiguration.FindOrAdd(State);
-	}
-}
 
 FVector AGridActor::GetCoordinateWorldCenter(int32 x, int32 y)
 {
@@ -92,10 +104,10 @@ FVector AGridActor::GetCoordinateWorldCenter(int32 x, int32 y)
 
 //Constant array of all connected tiles
 
-AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied)
+UGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied)
 {
 	FVector Offset = Coordinates - GetActorLocation();
-	AGridTile* ret = nullptr;
+	UGridTile* ret = nullptr;
 
 	int32 closestY, closestX;
 
@@ -119,10 +131,9 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 	int32 h = 0;
 	float minDist = std::numeric_limits<float>::max();
 
-	while (AGridTile** compptr = GridTiles.Find(FIntVector(closestX, closestY, h)))
+	while (UGridTile* comp = FindTileByCoordinates(FIntVector(closestX, closestY, h)))
 	{
-		AGridTile* comp = *compptr;
-		float compDist = (comp->GetActorLocation() - Coordinates).Size();
+		float compDist = (comp->WorldLocation - Coordinates).Size();
 
 		if (bCanBeOccupied || !comp->GetIsOccupied())
 		{
@@ -141,11 +152,9 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 
 	//If we dont find one with the closest xy coordinates, persue a brute force 
 	//TODO: find a better way to do this
-	for (auto&& KVPair : GridTiles)
+	for (auto* comp : GridTiles)
 	{
-		AGridTile* comp = KVPair.Value;
-
-		float compDist = (comp->GetActorLocation() - Coordinates).Size();
+		float compDist = (comp->WorldLocation - Coordinates).Size();
 
 		if (bCanBeOccupied || !comp->GetIsOccupied())
 		{
@@ -161,7 +170,7 @@ AGridTile* AGridActor::GetTileClosestToCoordinates(FVector Coordinates, bool bCa
 }
 
 
-void AGridActor::GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<AGridTile*>& OutTiles)
+void AGridActor::GetSurroundingTiles(UGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<UGridTile*>& OutTiles)
 {
 	if (ensure(Origin))
 	{
@@ -193,137 +202,180 @@ void AGridActor::GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, in
 
 			//Discover all tiles;
 			//Iterate over layers of the current coordinates;
-			for (int h = 0; AGridTile * *TilePtr = GridTiles.Find(FIntVector(Current_Coords.X, Current_Coords.Y, h)); h++)
+			for (int h = 0; UGridTile * Tile = FindTileByCoordinates(FIntVector(Current_Coords.X, Current_Coords.Y, h)); h++)
 			{
-				AGridTile* pvt = *TilePtr;
-				OutTiles.Add(pvt);
+				OutTiles.Add(Tile);
 			}
 		}
 	}
 }
 
-void AGridActor::BakeConnectedTiles(int x, int y)
+#if WITH_EDITORONLY_DATA
+
+
+void AGridActor::RegenerateGrid()
 {
-	int z = 0;
-
-	while (AGridTile** TilePtr = GridTiles.Find(FIntVector(x, y, z)))
+	if (GridPainter)
 	{
-		EDrawDebugTrace::Type DrawDebugType = (Debug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None);
-		TArray<AActor*> IgnoreActors;
-		TArray<TEnumAsByte<EObjectTypeQuery>> ObstacleTypes = { UEngineTypes::ConvertToObjectType(ObstacleChannel) };
+		GridPainter->SetGrid(this);
+		GridPainter->Clear();
+	}
+	ClearGrid();
+	CreateGrid();
 
-		AGridTile* Tile = *TilePtr;
+	if (GridPainter) GridPainter->UpdateGrid();
 
-		//Check up and down tiles
-		AGridTile** UpTilePtr = GridTiles.Find(FIntVector(x, y, z + 1));
-		Tile->UpTile = (UpTilePtr ? *UpTilePtr : nullptr);
-		AGridTile** DownTilePtr = GridTiles.Find(FIntVector(x, y, z - 1));
-		Tile->DownTile = (DownTilePtr ? *DownTilePtr : nullptr);
+	UEditorAssetLibrary::SaveAsset(this->GetPathName());
+}
 
-		//Check for directly adjacent tiles (-> no leap required)
-		for (FIntVector dir : AdjacentTileDirections)
+void AGridActor::BakeConnectedTiles(UGridTile* Tile)
+{
+	int x = Tile->Coordinates.X;
+	int y = Tile->Coordinates.Y;
+	int z = Tile->Coordinates.Z;
+
+	EDrawDebugTrace::Type DrawDebugType = (false ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None);
+	TArray<AActor*> IgnoreActors;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObstacleTypes = { UEngineTypes::ConvertToObjectType(ObstacleChannel) };
+
+	//Check up and down tiles
+	UGridTile* UpTilePtr = FindTileByCoordinates(FIntVector(x, y, z + 1));
+	UGridTile* DownTilePtr = FindTileByCoordinates(FIntVector(x, y, z - 1));
+
+	//Check for directly adjacent tiles (-> no leap required)
+	for (FIntVector dir : AdjacentTileDirections)
+	{
+		int h = 0;
+		while (UGridTile* AdjacentTile = FindTileByCoordinates(dir + FIntVector(x, y, h)))
 		{
-			int h = 0;
-			while (AGridTile** AdjacentTilePtr = GridTiles.Find(dir + FIntVector(x, y, h)))
+			//1) Check if the path between the two adjacent tiles is walkable
+			//Traces a sphere path above the tiles to check if theres any collision
+			FHitResult Hit;
+			FVector DirectStart = Tile->WorldLocation + FVector::UpVector * (ProbeSize + TraceOffset);
+			FVector DirectEnd = AdjacentTile->WorldLocation + FVector::UpVector * (ProbeSize + TraceOffset);
+
+
+			if (UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, DirectEnd, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Green, FLinearColor::Red, 5.0f))
 			{
-				AGridTile* AdjacentTile = *AdjacentTilePtr;
+				//Check if a jump is required
+				//First check if a direct jump is possible
+				// -> Approximate the jumping arc
+				float Z_Peak = FMath::Max(DirectStart.Z, DirectEnd.Z) + TraceOffset;
 
-				//1) Check if the path between the two adjacent tiles is walkable
-				//Traces a sphere path above the tiles to check if theres any collision
-				FHitResult Hit;
-				FVector DirectStart = Tile->GetActorLocation() + FVector::UpVector * (ProbeSize + TraceOffset);
-				FVector DirectEnd = AdjacentTile->GetActorLocation() + FVector::UpVector * (ProbeSize + TraceOffset);
+				//Line trace up above both tiles up to the max of their Z + Offset
+				FVector JumpPeak1 = FVector(DirectStart.X, DirectStart.Y, Z_Peak);
+				FVector JumpPeak2 = FVector(DirectEnd.X, DirectEnd.Y, Z_Peak);
 
+				bool bCanJump = false;
 
-				if (UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, DirectEnd, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Green, FLinearColor::Red, 5.0f))
+				bool Obstucted1 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, JumpPeak1, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+
+				if (!Obstucted1)
 				{
-					//Check if a jump is required
-					//First check if a direct jump is possible
-					// -> Approximate the jumping arc
-					float Z_Peak = FMath::Max(DirectStart.Z, DirectEnd.Z) + TraceOffset;
+					bool Obstucted2 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectEnd, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
 
-					//Line trace up above both tiles up to the max of their Z + Offset
-					FVector JumpPeak1 = FVector(DirectStart.X, DirectStart.Y, Z_Peak);
-					FVector JumpPeak2 = FVector(DirectEnd.X, DirectEnd.Y, Z_Peak);
-
-					bool bCanJump = false;
-
-					bool Obstucted1 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectStart, JumpPeak1, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
-
-					if (!Obstucted1)
+					if (!Obstucted2)
 					{
-						bool Obstucted2 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, DirectEnd, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
+						bool Obstucted3 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, JumpPeak1, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
 
-						if (!Obstucted2)
+						if (!Obstucted3)
 						{
-							bool Obstucted3 = UKismetSystemLibrary::SphereTraceSingleForObjects(this, JumpPeak1, JumpPeak2, ProbeSize, ObstacleTypes, true, IgnoreActors, DrawDebugType, Hit, true, FLinearColor::Yellow, FLinearColor::Red, 5.0f);
-
-							if (!Obstucted3)
-							{
-								bCanJump = true;
-							}
+							bCanJump = true;
 						}
 					}
-
-					if (bCanJump)
-					{
-						FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile);
-						ConnectionData.HeightDifference = (DirectEnd.Z - DirectStart.Z) / HeightIntervals;
-						ConnectionData.bRequiresJump = true;
-						ConnectionData.RequiredJumpHeight = 1 + (Z_Peak - FMath::Min(DirectStart.Z, DirectEnd.Z)) / HeightIntervals;
-					}
-					//Line trace between the two peak points
-
 				}
-				else
+
+				if (bCanJump)
 				{
-					FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile);
+					FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile->Coordinates);
 					ConnectionData.HeightDifference = (DirectEnd.Z - DirectStart.Z) / HeightIntervals;
+					ConnectionData.bRequiresJump = true;
+					ConnectionData.RequiredJumpHeight = 1 + (Z_Peak - FMath::Min(DirectStart.Z, DirectEnd.Z)) / HeightIntervals;
 				}
+				//Line trace between the two peak points
 
-				h++;
 			}
-		}
+			else
+			{
+				FConnectedTileData& ConnectionData = Tile->ConnectedTiles.Add(AdjacentTile->Coordinates);
+				ConnectionData.HeightDifference = (DirectEnd.Z - DirectStart.Z) / HeightIntervals;
+			}
 
-		z++;
+			h++;
+		}
 	}
 }
 
 void AGridActor::CreateGrid()
 {
-	//Generates all the grid tiles
-	for (int x = -GridRadius; x <= GridRadius; x++)
-	{
-		for (int y = -GridRadius; y <= GridRadius; y++)
-		{
-			int Distance = UGridUtilityLibrary::GetHexDistance_FromCoords(FIntVector(0, 0, 0), FIntVector(x, y, 0));
+	TArray<FGridTileBuilder> TileBuilders;
+	TArray<FGridNavigationBuilder> NavBuilders;
 
-			//Check if the tile would be within the radius
-			if (Distance <= GridRadius)
-			{
-				CreateTilesAtCoordinates(x, y);
-			}
-		}
+	GridTiles.Empty();
+
+	//Estimate how many threads can be used for generation
+	int32 NumTreads = GridRadius + 1; //FMath::Max(1, FMath::Min(FGenericPlatformMisc::NumberOfCoresIncludingHyperthreads() - 2, GridRadius));
+	float IntervalSize = (float)GridRadius / NumTreads;
+
+
+	TileBuilders.Reserve(NumTreads);
+
+	UE_LOG(LogTemp, Log, TEXT("Building Grid with %d threads."), NumTreads);
+
+	//Initiate the threads for creating the tiles
+	TArray<FRunnableThread*> BuilderThreads;
+	for (int n = 0; n < NumTreads; n++)
+	{
+		TileBuilders.Add(FGridTileBuilder(this, n));
+		FRunnableThread* newThread = FRunnableThread::Create(&TileBuilders[n], TEXT("TileBuilderThread"));
+		BuilderThreads.Add(newThread);
 	}
 
-	//Maps all neighbouring tiles
-	for (int x = -GridRadius; x <= GridRadius; x++)
+	//Run the threads
+	for (int i = 0; i < BuilderThreads.Num(); i++)
 	{
-		for (int y = -GridRadius; y <= GridRadius; y++)
-		{
-			int Distance = UGridUtilityLibrary::GetHexDistance_FromCoords(FIntVector(0, 0, 0), FIntVector(x, y, 0));
+		UE_LOG(LogTemp, Log, TEXT("Waiting for %d/%d"), i, BuilderThreads.Num())
 
-			//Check if the tile would be within the radius
-			if (Distance <= GridRadius)
-			{
-				BakeConnectedTiles(x, y);
-			}
-		}
+		BuilderThreads[i]->WaitForCompletion();
+		GridTiles.Append(TileBuilders[i].OutTiles);
 	}
+
+
+	//UE_LOG(LogTemp, Log, TEXT("done"))
+
+	//NumTreads = FMath::Max(1, FMath::Min(FGenericPlatformMisc::NumberOfCoresIncludingHyperthreads() - 2, GridRadius));
+	
+	ParallelFor(GridTiles.Num(), [&](int32 index)
+		{
+			BakeConnectedTiles(GridTiles[index]);
+		});
+
+	//BuilderThreads.Empty();
+	//IntervalSize = GridTiles.Num()/ NumTreads;
+	////Maps all neighbouring tiles
+	//for (int n = 0; n < NumTreads; n++)
+	//{
+	//	int32 start = n * IntervalSize;
+	//	int32 stop = (n + 1) * IntervalSize;
+	//	NavBuilders.Add(FGridNavigationBuilder(this, start, stop));
+	//	FRunnableThread* newThread = FRunnableThread::Create(&NavBuilders[n], TEXT("TileNavbuilderThread"));
+	//	BuilderThreads.Add(newThread);
+	//}
+
+	////Run the threads
+	//for (int i = 0; i < BuilderThreads.Num(); i++)
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Waiting for %d/%d"), i, BuilderThreads.Num())
+
+	//		BuilderThreads[i]->WaitForCompletion();
+	//}
 }
 
 void AGridActor::CreateTilesAtCoordinates(int x, int y)
 {
+	int Distance = UGridUtilityLibrary::GetHexDistance_FromCoords(FIntVector(0, 0, 0), FIntVector(x, y, 0));
+	if (!(Distance <= GridRadius)) return;
+
 	//Line trace for all possible locations to spawn a tile
 	TArray<FHitResult> Hits;
 	FVector Start = GetActorLocation() + GetCoordinateWorldCenter(x, y);
@@ -350,39 +402,31 @@ void AGridActor::CreateTilesAtCoordinates(int x, int y)
 
 		FIntVector Coordinates = FIntVector(x, y, i);
 
-		AGridTile* newTile = GetWorld()->SpawnActor<AGridTile>();
-		newTile->SetActorLabel(FString::Printf(TEXT("Tile_%d_%d_%d"), x, y, i));
-		newTile->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		UGridTile* newTile = NewObject<UGridTile>(this);
+
+		FString PackName;
+		newTile->GetPackage()->GetName(PackName);
+		//newTile->SetActorLabel(FString::Printf(TEXT("Tile_%d_%d_%d"), x, y, i));
+		//newTile->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 		newTile->Coordinates = Coordinates;
-		newTile->SetActorLocation(Hits[i].Location);
+		newTile->WorldLocation = Hits[i].Location;
 		newTile->ParentGrid = this;
 
-		GridTiles.FindOrAdd(Coordinates, newTile);
+		GridTiles.Add(newTile);
 		PreviousTileHeight = Hits[i].Location.Z;
 	}
-
 }
 
-void AGridActor::CleanUpGrid()
+void AGridActor::ClearGrid()
 {
-	for (auto&& KVPair : GridTiles)
+	for (UGridTile* Tile : GridTiles)
 	{
-		AGridTile* Tile = KVPair.Value;
-
-		if (Tile)
-			Tile->Destroy();
+		//if (Tile)
+		//	Tile->Destroy();
 	}
 
 	GridTiles.Empty();
 }
 
-void AGridActor::RegenerateGrid()
-{
-	GridPainter->Clear();
-
-	CleanUpGrid();
-	CreateGrid();
-
-	GridPainter->UpdateGrid();
-}
+#endif
 

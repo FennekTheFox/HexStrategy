@@ -4,7 +4,7 @@
 #include "Engine/DataAsset.h"
 #include "GAS_UnitAbilities.generated.h"
 
-class AGridTile;
+class UGridTile;
 class UUnitAbilityVisualizer;
 class UCategoryData;
 
@@ -58,7 +58,7 @@ class UTileValidityChecker : public UObject
 
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintPure)
-		bool ValidateTile(AGridTile* TargetTile, AActor* TargetActor);
+		bool ValidateTile(UGridTile* TargetTile, AActor* TargetActor);
 };
 
 

@@ -6,40 +6,46 @@
 #include "Net/UnrealNetwork.h"
 #include <Components/StaticMeshComponent.h>
 
-AGridTile::AGridTile()
+UGridTile::UGridTile()
 {
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
-	SMC = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SMC"));
-	bReplicates = true;
-	NetUpdateFrequency = 10.0f;
+	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
+	//SMC = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SMC"));
+	//bReplicates = true;
+	//NetUpdateFrequency = 10.0f;
 }
 
-void AGridTile::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+void UGridTile::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 
-	DOREPLIFETIME(AGridTile, OccupyingActor);
+	DOREPLIFETIME(UGridTile, OccupyingActor);
 }
 
-void AGridTile::SetTileState(const UObject* Agent, ETileDisplayState NewState, int32 InLayer /*= 0*/)
+
+bool UGridTile::IsFullNameStableForNetworking() const
+{
+	return Super::IsFullNameStableForNetworking();
+}
+
+void UGridTile::SetTileState(const UObject* Agent, ETileDisplayState NewState, int32 InLayer /*= 0*/)
 {
 	DisplayState.SetTileState(Agent, NewState, InLayer);
 	UpdateTile();
 }
 
-void AGridTile::ResetTileState(const UObject* Agent)
+void UGridTile::ResetTileState(const UObject* Agent)
 {
 	DisplayState.ResetTileState(Agent);
 	UpdateTile();
 }
 
-void AGridTile::UpdateTile()
+void UGridTile::UpdateTile()
 {
 	ParentGrid->GetGridPainter()->UpdateTile(this);
 }
 
-bool AGridTile::OccupyTile(AActor* InOccupyingActor)
+bool UGridTile::OccupyTile(AActor* InOccupyingActor)
 {
 	if (!OccupyingActor)
 	{
@@ -53,7 +59,7 @@ bool AGridTile::OccupyTile(AActor* InOccupyingActor)
 
 
 
-void AGridTile::TryLeaveTile(AActor* InOccupyingActor, std::function<void(bool)> OnComplete)
+void UGridTile::TryLeaveTile(AActor* InOccupyingActor, std::function<void(bool)> OnComplete)
 
 {
 	AsyncTask(ENamedThreads::AnyHiPriThreadNormalTask, [=]()
@@ -99,7 +105,7 @@ void AGridTile::TryLeaveTile(AActor* InOccupyingActor, std::function<void(bool)>
 		});
 }
 
-void AGridTile::AbandonTile(AActor* InOccupyingActor)
+void UGridTile::AbandonTile(AActor* InOccupyingActor)
 {
 	if (OccupyingActor && OccupyingActor == InOccupyingActor)
 	{
@@ -107,18 +113,18 @@ void AGridTile::AbandonTile(AActor* InOccupyingActor)
 	}
 }
 
-AActor* AGridTile::GetOccupyingUnit()
+AActor* UGridTile::GetOccupyingUnit()
 {
 	return (PreoccupyingActor ? PreoccupyingActor : OccupyingActor);
 }
 
-bool AGridTile::GetIsOccupied()
+bool UGridTile::GetIsOccupied()
 {
 	return (OccupyingActor != nullptr || PreoccupyingActor != nullptr);
 }
 
 
-bool AGridTile::PreoccupyTile(AActor* InOccupyingActor)
+bool UGridTile::PreoccupyTile(AActor* InOccupyingActor)
 {
 	if (!PreoccupyingActor)
 	{

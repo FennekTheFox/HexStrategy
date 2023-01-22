@@ -129,17 +129,19 @@ public:
 
 
 UCLASS(BlueprintType, hideCategories = (WorldPartition, Input, Actor, Cooking, DataLayers, Replication, Rendering, Collision, HLOD, Physics, Networking))
-class AGridTile : public AActor
+class UGridTile : public UObject
 {
 	GENERATED_BODY()
 
-		AGridTile();
+		UGridTile();
 
 
 public:
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes")
 		FIntVector Coordinates;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes")
+		FVector WorldLocation;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes")
 		class AGridActor* ParentGrid;
 
@@ -148,11 +150,11 @@ public:
 		UStaticMeshComponent* SMC;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes|Neighbours")
-		TMap<AGridTile*, FConnectedTileData> ConnectedTiles;
+		TMap<FIntVector, FConnectedTileData> ConnectedTiles;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes|Neighbours")
-		AGridTile* UpTile;
+		UGridTile* UpTile;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Tile Attributes|Neighbours")
-		AGridTile* DownTile;
+		UGridTile* DownTile;
 	/*The current display state of the Tile, does not replicate*/
 	UPROPERTY(VisibleAnywhere)
 		FTileState DisplayState;
@@ -163,6 +165,10 @@ public:
 
 
 	void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+
+	bool IsFullNameStableForNetworking() const override;
 
 public:
 

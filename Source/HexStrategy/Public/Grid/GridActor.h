@@ -1,20 +1,12 @@
 #pragma once
 
 #include "GridTile.h"
+#include "GridBuilders.h"
+#include "GridPainter/GridPainter.h"
 #include "GridActor.generated.h"
 
 
 
-USTRUCT(BlueprintType)
-struct FTilePainterSettings
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		FLinearColor OutlineColor = FLinearColor(1, 1, 1, 1);
-	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		FLinearColor FillColor = FLinearColor(1, 1, 1, 0);
-};
 
 
 UENUM(BlueprintType)
@@ -27,17 +19,20 @@ enum class EGridOrientation : uint8
 UCLASS()
 class AGridActor : public AActor
 {
+	friend class FGridTileBuilder;
+	friend class FGridNavigationBuilder;
+
 	GENERATED_BODY()
 
 	AGridActor();
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
-		bool Bake = false;
-	UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
-		bool BakeOnConstruction = false;
-	UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
-		bool Debug = false;
+	//UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
+	//	bool Bake = false;
+	//UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
+	//	bool BakeOnConstruction = false;
+	//UPROPERTY(EditAnywhere, Category = "Grid|Cooking")
+	//	bool Debug = false;
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
 		TEnumAsByte<ECollisionChannel> GroundChannel = ECC_GameTraceChannel1;
 	UPROPERTY(EditAnywhere, Category = "Grid|Cooking|TraceSettings")
@@ -65,58 +60,56 @@ public:
 		float MinTileVerticalDistance = 100.f;
 	UPROPERTY(EditAnywhere, Category = "Grid|Settings")
 		EGridOrientation GridOrientation;
+		 
+	UPROPERTY(EditAnywhere, Instanced, Category = "Grid|Settings|Painter")
+		UGridPainter* GridPainter;
+	UPROPERTY(EditAnywhere, NoClear, Category = "Grid|Settings|Painter")
+		class UGridPainterConfig* GridPainterConfiguration;
 
-	UPROPERTY(EditAnywhere, Category = "Grid|Settings|Painter")
-		TSubclassOf<class UGridPainter> GridPainterClass;
-	UPROPERTY(EditAnywhere, Category = "Grid|Settings|Painter")
-		TMap<ETileDisplayState, FTilePainterSettings> GridPainterConfiguration;
 
+	UPROPERTY(Replicated, Instanced)
+		TArray<UGridTile*> GridTiles;
 
-	UPROPERTY(VisibleAnywhere, Category = "Grid|Debug")
-		TMap<FIntVector, AGridTile*> GridTiles;
+	
 
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
-private:
-	UPROPERTY()
-		UGridPainter* GridPainter;
 
-	UFUNCTION(BlueprintCallable, NetMulticast, reliable)
-		void SetIsActive(bool bNewActive);
 
+	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 public:
 	UGridPainter* GetGridPainter() {return GridPainter;}
 	void OnConstruction(const FTransform& Transform) override;
-	void RefreshProperties();	//Makes sure all keys and subkeys are always present
-	virtual void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override
-	{
-		Super::PostEditChangeChainProperty(PropertyChangedEvent);
-		RefreshProperties();
-	}
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override
-	{
-		Super::PostEditChangeProperty(PropertyChangedEvent);
-		RefreshProperties();
-	}
 
 	UFUNCTION(BlueprintPure)
 		FVector GetCoordinateWorldCenter(int32 x, int32 y);
 	UFUNCTION(BlueprintPure)
-		AGridTile* GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied = false);
+		UGridTile* GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied = false);
 	UFUNCTION(BlueprintPure)
-		void GetSurroundingTiles(AGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<AGridTile*>& OutTiles);
+		void GetSurroundingTiles(UGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<UGridTile*>& OutTiles);
 
-	UFUNCTION(CallInEditor)
-	void RegenerateGrid();
+	UFUNCTION(BlueprintCallable, NetMulticast, reliable)
+		void SetIsActive(bool bNewActive);
+
+	UFUNCTION(BlueprintPure)
+		class UGridTile* FindTileByCoordinates(FIntVector Coordintates);
+
+
+	//Editor functionality
+#if WITH_EDITORONLY_DATA
+	UFUNCTION(CallInEditor, Category = "Grid|Cooking")
+		void RegenerateGrid();
+	UFUNCTION(CallInEditor, Category = "Grid|Cooking")
+		void ClearGrid();
 
 private:
-	void BakeConnectedTiles(int x, int y);
+	void BakeConnectedTiles(UGridTile* Tile);
 	void CreateGrid();
 	void CreateTilesAtCoordinates(int x, int y);
-	void CleanUpGrid();
-	
+#endif
 
 
 };

@@ -1,6 +1,7 @@
 #include "UnitGenerator.h"
 
 #include "UnitData.h"
+#include "UnitOptionHelpers.h"
 #include "Professions.h"
 
 class UUnitData* UUnitGenerator::GenerateNewUnit(FUnitGenerationParameters& Params, UObject* Outer)
@@ -64,10 +65,10 @@ class UUnitData* UUnitGenerator::GenerateNewUnit(FUnitGenerationParameters& Para
 	BodyData.UnitRace = FSoftObjectPath(ChosenRace);
 	BodyData.SuperBodyTypeID = ChosenRace->GetSuperBodyTypeIDForAppearance(ChosenAppearance);
 	BodyData.SubBodyTypeID = ChosenRace->GetSubBodyTypeIDForAppearance(ChosenAppearance);
-	BodyData.BodyColor = PickRandomLinearColor(ChosenAppearance->PossibleBodyColors);
-	BodyData.EyeColor = PickRandomLinearColor(ChosenAppearance->PossibleEyeColors);
-	BodyData.HairColor = PickRandomLinearColor(ChosenAppearance->PossibleHairColors);
-	BodyData.HairStyle = PickRandomHairStyle(ChosenAppearance->PossibleHairStyles);
+	BodyData.BodyColor = OptionHelpers::PickRandomOption<FColourOption>(ChosenAppearance->PossibleBodyColors)->Colour;
+	BodyData.EyeColor = OptionHelpers::PickRandomOption<FColourOption>(ChosenAppearance->PossibleEyeColors)->Colour;
+	BodyData.HairColor = OptionHelpers::PickRandomOption<FColourOption>(ChosenAppearance->PossibleHairColors)->Colour;
+	BodyData.HairStyle = OptionHelpers::PickRandomOption<FHairStypeOption>(ChosenAppearance->PossibleHairStyles)->HairStyle;
 
 	OutUnitData->UnitBodyData = BodyData;
 
@@ -79,60 +80,3 @@ class UUnitData* UUnitGenerator::GenerateNewUnit(FUnitGenerationParameters& Para
 
 	return OutUnitData;
 }
-
-FLinearColor UUnitGenerator::PickRandomLinearColor(const TArray<FColourOption>& Options) 
-{
-	if(!ensure(!Options.Num() == 0)) return FLinearColor::Red;
-
-	float CombinedWeight = 0;
-
-	//Tally up the combined weights
-	for (const FColourOption& Option : Options)
-	{
-		CombinedWeight += Option.Weight;
-	}
-
-	//Pick a random value between 0  and the combined weight
-	float RandomScalar = FMath::FRand();
-	float TargetValue = CombinedWeight * RandomScalar;
-
-	//Find the first entry in the distribution map where the running count exceeds the target value
-	float RunningCount = 0;
-	for (const FColourOption& Option : Options)
-	{
-		RunningCount += Option.Weight;
-		if (RunningCount >= TargetValue)
-			return Option.Colour;
-	}
-
-	return FLinearColor::Red;
-}
-
-UHairStyle* UUnitGenerator::PickRandomHairStyle(const TArray<FHairStypeOption>& Options)
-{
-	if (!ensure(!Options.Num() == 0)) return nullptr;
-
-	float CombinedWeight = 0;
-
-	//Tally up the combined weights
-	for (const FHairStypeOption& Option : Options)
-	{
-		CombinedWeight += Option.Weight;
-	}
-
-	//Pick a random value between 0  and the combined weight
-	float RandomScalar = FMath::FRand();
-	float TargetValue = CombinedWeight * RandomScalar;
-
-	//Find the first entry in the distribution map where the running count exceeds the target value
-	float RunningCount = 0;
-	for (const FHairStypeOption& Option : Options)
-	{
-		RunningCount += Option.Weight;
-		if (RunningCount >= TargetValue)
-			return Option.HairStyle;
-	}
-
-	return nullptr;
-}
-

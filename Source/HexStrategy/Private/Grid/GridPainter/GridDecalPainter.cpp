@@ -7,14 +7,38 @@
 
 UGridDecalPainter::UGridDecalPainter()
 {
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(TEXT("Script/Engine.Material'/Game/Materials/M_GridDecalPainter.M_GridDecalPainter'"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(TEXT("/Script/Engine.Material'/Game/Materials/GridPainters/M_GridDecalPainter.M_GridDecalPainter'"));
 	if (ensure(MaterialFinder.Object != NULL))
 	{
 		GridDecalMaterial = (UMaterialInterface*)MaterialFinder.Object;
 	}
 }
 
-void UGridDecalPainter::UpdateTile(AGridTile* Tile)
+UGridDecalPainter::~UGridDecalPainter()
+{
+	for (auto&& KVPair : DecalToMID)
+	{
+		KVPair.Key->UnregisterComponent();
+	}
+}
+
+void UGridDecalPainter::UpdateGrid()
+{
+	CoordinatesToDecal.Empty();
+	DecalToMID.Empty();
+	Super::UpdateGrid();
+}
+
+//void UGridDecalPainter::OnDestroy()
+//{
+//	for (auto&& KVPair : CoordinatesToDecal)
+//	{
+//		UDecalComponent* Decal = KVPair.Value;
+//		Decal->UnregisterComponent();
+//	}
+//}
+
+void UGridDecalPainter::UpdateTile(UGridTile* Tile)
 {
 	UWorld* World = GetWorld();
 	ensureAlways(World);
@@ -39,15 +63,16 @@ void UGridDecalPainter::UpdateTile(AGridTile* Tile)
 		//Tile already exists, update the tile decal here
 		DecalComp = *CoordinatesToDecal.Find(Tile->Coordinates);
 	}
+
 	DecalComp->SetVisibility(Grid->bIsActive);
 	DecalComp->DecalSize = FVector(1.0f, 1.0f, 1.0f) * Grid->TileSize * (1.f - Grid->TileSpacing) / 2;
-	DecalComp->SetWorldLocation(Tile->GetActorLocation());
+	DecalComp->SetWorldLocation(Tile->WorldLocation);
 
 	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(DecalComp->GetDecalMaterial());
 
 	if (MID)
 	{
-		FTilePainterSettings* ColorSettings = Grid->GridPainterConfiguration.Find(Tile->GetDisplayState());
+		FTilePainterSettings* ColorSettings = Grid->GridPainterConfiguration->Colours.Find(Tile->GetDisplayState());
 
 		MID->SetVectorParameterValue(TEXT("OutlineColor"), ColorSettings->OutlineColor);
 		MID->SetVectorParameterValue(TEXT("FillColor"), ColorSettings->FillColor);

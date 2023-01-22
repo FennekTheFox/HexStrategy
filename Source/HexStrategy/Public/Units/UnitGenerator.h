@@ -16,22 +16,46 @@ public:
 	/*The possible races for the generated unit with their respective weights*/
 	UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Appearance")
 		TMap<class UUnitRace*, float> RaceWeights;
+
 	/*The tags that the generated unit has to have*/
 	UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Appearance")
 		FGameplayTagContainer RequiredBodyTypeTags;
+
 	/*The tags that the generated unit is not allowed to have*/
 	UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Appearance")
 		FGameplayTagContainer ForbiddenBodyTypeTags;
+
+	///*The tags will be preferred when */
+	//UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Appearance")
+	//	FGameplayTagContainer PreferredTraitTags;
+
+
 	/*Maps how important each */
 	UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Appearance")
 		TMap<FGameplayTag, float> BodyTypeTagWeights;
 
 
 	//The weighting of possible professons 
-	UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Appearance")
+	UPROPERTY(BlueprintReadWrite, Category = "Unit Generation Parameters|Profession")
 		TMap<class UUnitProfession*, float> ProfessionWeights;
-
 };
+
+
+//Data asset wrapper for unit generation parameters
+UCLASS(BlueprintType)
+class UUnitGenerationParamterPreset : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere)
+		FUnitGenerationParameters Parameters;
+
+	UFUNCTION(BlueprintPure, meta=(DisplayName = "From Preset"))
+		static  const FUnitGenerationParameters GetParametersFromPreset(const UUnitGenerationParamterPreset* Preset)
+		{ return Preset->Parameters; }
+};
+
 
 UCLASS(Abstract)
 class UUnitGenerator : public UObject
@@ -49,9 +73,7 @@ public:
 		std::cout << s << '\n';
 	}
 
-	static FLinearColor PickRandomLinearColor(const TArray<FColourOption>& Options);
-	static UHairStyle* PickRandomHairStyle(const TArray<FHairStypeOption>& Options);
-
+	/*Picks a random value from a Value->Weight map*/
 	template<typename ValueType, typename WeightType>
 	static ValueType* PickRandomWeightedValue(TMap<ValueType, WeightType>& DistributionMap)
 	{

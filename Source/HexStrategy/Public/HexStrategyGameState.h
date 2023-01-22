@@ -26,11 +26,11 @@ class AHexStrategyGameState : public AGameState
 	GENERATED_BODY()
 
 public:
-	/*The game file data of all connected clients*/
-	UPROPERTY(Replicated, BlueprintReadWrite)
-		TArray<UGameFileData_DataAsset*> LoadedGameFileData;
+	///*The game file data of all connected clients*/
+	//UPROPERTY(Replicated, BlueprintReadWrite)
+	//	TArray<UGameFileData_DataAsset*> LoadedGameFileData;
 
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
+	//void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	//bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 };

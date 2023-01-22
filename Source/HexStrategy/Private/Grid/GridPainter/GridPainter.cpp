@@ -5,10 +5,28 @@ void UGridPainter::UpdateGrid()
 {
 	if (Grid)
 	{
-		for (auto&&KVPair : Grid->GridTiles)
+		for (auto* Tile : Grid->GridTiles)
 		{
-			AGridTile* Tile = KVPair.Value;
 			UpdateTile(Tile);
 		}
 	}
 }
+
+void UGridPainterConfig::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Refresh();
+}
+
+UGridPainterConfig::UGridPainterConfig()
+{
+	Refresh();
+}
+
+void UGridPainterConfig::Refresh()
+{
+	for (ETileDisplayState State : TEnumRange<ETileDisplayState>())
+	{
+		Colours.FindOrAdd(State);
+	}
+}
+

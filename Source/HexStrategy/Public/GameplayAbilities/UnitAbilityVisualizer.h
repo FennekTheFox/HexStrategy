@@ -20,7 +20,7 @@ public:
 	//BEGIN FTickableGameObject
 	void Tick(float DeltaTime) override;
 	TStatId GetStatId() const override;
-	bool IsTickable() const override;
+	virtual ETickableTickType GetTickableTickType() const override;
 	bool IsTickableInEditor() const override;
 	bool IsAllowedToTick() const override;
 
@@ -29,9 +29,9 @@ public:
 public:
 	//Visualization
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Action Base")
-		void UpdateVisualization(AGridTile* PotentialTarget);
+		void UpdateVisualization(UGridTile* PotentialTarget);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Action Base")
-		void ShowHoveredVisualization(AGridTile* PotentialTarget);
+		void ShowHoveredVisualization(UGridTile* PotentialTarget);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Action Base")
 		void HideHoveredVisualization();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Action Base")

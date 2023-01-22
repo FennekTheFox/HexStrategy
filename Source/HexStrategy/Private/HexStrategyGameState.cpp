@@ -12,17 +12,17 @@ void UMyObject::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifet
 }
 
 
-void AHexStrategyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	DOREPLIFETIME(AHexStrategyGameState, LoadedGameFileData);
-}
-
-bool AHexStrategyGameState::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-	bool bWroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-
-	bWroteSomething |= Channel->ReplicateSubobjectList(LoadedGameFileData, *Bunch, *RepFlags);
-
-	return bWroteSomething;
-}
-
+//void AHexStrategyGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+//{
+//	DOREPLIFETIME(AHexStrategyGameState, LoadedGameFileData);
+//}
+//
+//bool AHexStrategyGameState::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
+//{
+//	//bool bWroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+//
+//	//bWroteSomething |= Channel->ReplicateSubobjectList(LoadedGameFileData, *Bunch, *RepFlags);
+//
+//	//return bWroteSomething;
+//}
+//
