@@ -313,7 +313,7 @@ bool FGridPathFinderRequest::IsValid()
 	return (Start && Goal);
 }
 
-#pragma optimize( "", on )
+//#pragma optimize( "", on )
 
 void UGridPathFinderAgent::JumpingRequired_Implementation(UGridTile* From, UGridTile* To, bool& JumpingRequired, float& UpperBound, bool bDrawDebug)
 {
@@ -325,7 +325,7 @@ void UGridPathFinderAgent::JumpingRequired_Implementation(UGridTile* From, UGrid
 }
 
 
-#pragma optimize( "", off )
+//#pragma optimize( "", off )
 
 bool UGridMovementAgent::CanPassThroughTile_Implementation(UGridTile* FromTile, UGridTile* ToTile)
 {

@@ -17,6 +17,7 @@ void UGridPainterConfig::PostEditChangeChainProperty(FPropertyChangedChainEvent&
 	Refresh();
 }
 
+
 UGridPainterConfig::UGridPainterConfig()
 {
 	Refresh();

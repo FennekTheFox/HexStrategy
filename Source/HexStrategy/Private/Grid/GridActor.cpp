@@ -50,12 +50,15 @@ bool AGridActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, F
 	return bWroteSomething;
 }
 
-void AGridActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if(PropertyChangedEvent.)
-}
+//void AGridActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+//{
+//	Super::PostEditChangeProperty(PropertyChangedEvent.GetPropertyName == TEXT("GridPainter"))
+//	{
+//		PropertyChangedEvent.
+//	};
+//
+//	if (PropertyChangedEvent.)
+//}
 
 void AGridActor::SetIsActive_Implementation(bool bNewActive)
 {
@@ -210,8 +213,7 @@ void AGridActor::GetSurroundingTiles(UGridTile* Origin, FInt32Interval Range, in
 	}
 }
 
-#if WITH_EDITORONLY_DATA
-
+//#if WITH_EDITORONLY_DATA
 
 void AGridActor::RegenerateGrid()
 {
@@ -428,5 +430,5 @@ void AGridActor::ClearGrid()
 	GridTiles.Empty();
 }
 
-#endif
+//#endif
 

@@ -6,9 +6,6 @@
 #include "GridActor.generated.h"
 
 
-
-
-
 UENUM(BlueprintType)
 enum class EGridOrientation : uint8
 {
@@ -78,7 +75,7 @@ public:
 
 
 
-	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 public:
 	UGridPainter* GetGridPainter() {return GridPainter;}
@@ -99,7 +96,7 @@ public:
 
 
 	//Editor functionality
-#if WITH_EDITORONLY_DATA
+//#if WITH_EDITORONLY_DATA
 	UFUNCTION(CallInEditor, Category = "Grid|Cooking")
 		void RegenerateGrid();
 	UFUNCTION(CallInEditor, Category = "Grid|Cooking")
@@ -109,7 +106,7 @@ private:
 	void BakeConnectedTiles(UGridTile* Tile);
 	void CreateGrid();
 	void CreateTilesAtCoordinates(int x, int y);
-#endif
+//#endif
 
 
 };

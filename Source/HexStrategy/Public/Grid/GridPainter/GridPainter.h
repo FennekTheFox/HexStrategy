@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../GridTile.h"
+
 #include "GridPainter.generated.h"
 
 class UGridTile;
@@ -23,7 +24,7 @@ struct FTilePainterSettings
 UCLASS(BlueprintType)
 class UGridPainterConfig : public UDataAsset
 {
-	GENERATED_BODY()
+	GENERATED_BODY() 
 
 	UGridPainterConfig();
 	void Refresh();
