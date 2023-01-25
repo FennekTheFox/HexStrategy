@@ -30,13 +30,66 @@ AGridActor::AGridActor()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
 
 	bReplicates = true;
+
+	for (UGridTile* Tile : GridTiles)
+	{
+
+	}
+}
+
+
+AActor* AGridActor::GetActorOccupyingTile(const UGridTile* Tile)
+{
+	if(!ensure(Tile)) return nullptr;
+	
+	FIntVector Coordinates  = Tile->Coordinates;
+
+	FTileOccupationStatus* s = Occupations.FindByPredicate([Coordinates](const FTileOccupationStatus& state) {
+			return state.Coordinates == Coordinates;
+		});
+
+	if(s) return s->OccupyingActor;
+
+	return nullptr;
+}
+
+bool AGridActor::SetActorOccupyingTile(const UGridTile* Tile, AActor* Actor)
+{
+	if (!ensure(Tile && Actor)) return false;
+
+	FIntVector Coordinates = Tile->Coordinates;
+
+	int32 s = Occupations.IndexOfByPredicate([Coordinates](const FTileOccupationStatus& state) {
+		return state.Coordinates == Coordinates;
+		});
+
+	if (s != INDEX_NONE) return false;
+
+	Occupations.Add(FTileOccupationStatus(Actor, Coordinates));
+	return true;
+}
+
+bool AGridActor::UnsetActorOccupyingTile(const UGridTile* Tile)
+{
+	if (!ensure(Tile)) return false;
+
+	FIntVector Coordinates = Tile->Coordinates;
+
+	int32 s = Occupations.IndexOfByPredicate([Coordinates](const FTileOccupationStatus& state) {
+		return state.Coordinates == Coordinates;
+		});
+
+	if(!ensure(s != INDEX_NONE)) return false;
+
+	Occupations.RemoveAt(s);
+	return true;
 }
 
 void AGridActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//DOREPLIFETIME_CONDITION_NOTIFY(AGridActor, bIsActive, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME(AGridActor, Occupations);
 }
 
 bool AGridActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -310,7 +363,7 @@ void AGridActor::BakeConnectedTiles(UGridTile* Tile)
 
 void AGridActor::CreateGrid()
 {
-	TArray<FGridTileBuilder> TileBuilders;
+	TArray<UGridTileBuilder> TileBuilders;
 	TArray<FGridNavigationBuilder> NavBuilders;
 
 	GridTiles.Empty();
@@ -328,7 +381,7 @@ void AGridActor::CreateGrid()
 	TArray<FRunnableThread*> BuilderThreads;
 	for (int n = 0; n < NumTreads; n++)
 	{
-		TileBuilders.Add(FGridTileBuilder(this, n));
+		TileBuilders.Add(UGridTileBuilder(this, n));
 		FRunnableThread* newThread = FRunnableThread::Create(&TileBuilders[n], TEXT("TileBuilderThread"));
 		BuilderThreads.Add(newThread);
 	}

@@ -19,7 +19,7 @@ void UGridTile::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 
-	DOREPLIFETIME(UGridTile, OccupyingActor);
+	//DOREPLIFETIME(UGridTile, OccupyingActor);
 }
 
 
@@ -47,14 +47,7 @@ void UGridTile::UpdateTile()
 
 bool UGridTile::OccupyTile(AActor* InOccupyingActor)
 {
-	if (!OccupyingActor)
-	{
-		PreoccupyingActor = nullptr;
-		OccupyingActor = InOccupyingActor;
-		return true;
-	}
-
-	return false;
+	return ParentGrid->SetActorOccupyingTile(this, InOccupyingActor);
 }
 
 
@@ -93,6 +86,8 @@ void UGridTile::TryLeaveTile(AActor* InOccupyingActor, std::function<void(bool)>
 
 				AsyncTask(ENamedThreads::GameThread, [=]()
 					{
+						AActor* OccupyingActor = ParentGrid->GetActorOccupyingTile(this);
+
 						if (OccupyingActor && OccupyingActor == InOccupyingActor)
 						{
 							OccupyingActor = nullptr;
@@ -107,19 +102,17 @@ void UGridTile::TryLeaveTile(AActor* InOccupyingActor, std::function<void(bool)>
 
 void UGridTile::AbandonTile(AActor* InOccupyingActor)
 {
-	if (OccupyingActor && OccupyingActor == InOccupyingActor)
-	{
-		OccupyingActor = nullptr;
-	}
+	ParentGrid->UnsetActorOccupyingTile(this);
 }
 
 AActor* UGridTile::GetOccupyingUnit()
 {
-	return (PreoccupyingActor ? PreoccupyingActor : OccupyingActor);
+	return (PreoccupyingActor ? PreoccupyingActor : ParentGrid->GetActorOccupyingTile(this));
 }
 
 bool UGridTile::GetIsOccupied()
 {
+	AActor* OccupyingActor = ParentGrid->GetActorOccupyingTile(this);
 	return (OccupyingActor != nullptr || PreoccupyingActor != nullptr);
 }
 

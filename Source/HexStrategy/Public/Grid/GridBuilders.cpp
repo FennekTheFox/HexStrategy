@@ -4,12 +4,12 @@
 #include "GridTile.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-bool FGridTileBuilder::Init()
+bool UGridTileBuilder::Init()
 {
 	return Grid != nullptr;
 }
 
-uint32 FGridTileBuilder::Run()
+uint32 UGridTileBuilder::Run()
 {
 
 	for (int y = -Grid->GridRadius; y <= Grid->GridRadius; y++)
@@ -24,16 +24,16 @@ uint32 FGridTileBuilder::Run()
 }
 
 
-void FGridTileBuilder::Exit()
+void UGridTileBuilder::Exit()
 {
 }
 
-void FGridTileBuilder::Stop()
+void UGridTileBuilder::Stop()
 {
 
 }
 
-void FGridTileBuilder::CreateTilesAtCoordinates(int32 x, int32 y)
+void UGridTileBuilder::CreateTilesAtCoordinates(int32 x, int32 y)
 {
 	//UE_LOG(LogTemp, Log, TEXT("%d | %d "),x, y)
 	int Distance = UGridUtilityLibrary::GetHexDistance_FromCoords(FIntVector(0, 0, 0), FIntVector(x, y, 0));

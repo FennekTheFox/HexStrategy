@@ -5,6 +5,26 @@
 #include "GridPainter/GridPainter.h"
 #include "GridActor.generated.h"
 
+USTRUCT()
+struct FTileOccupationStatus
+{
+	GENERATED_BODY()
+
+	FTileOccupationStatus()
+	: OccupyingActor(nullptr)
+	{};
+
+	FTileOccupationStatus(AActor* _Actor, FIntVector _Coordinates)
+	: OccupyingActor(_Actor)
+	, Coordinates(_Coordinates)
+	{}
+
+	UPROPERTY()
+		AActor* OccupyingActor;
+	UPROPERTY()
+		FIntVector Coordinates;
+};
+
 
 UENUM(BlueprintType)
 enum class EGridOrientation : uint8
@@ -16,7 +36,7 @@ enum class EGridOrientation : uint8
 UCLASS()
 class AGridActor : public AActor
 {
-	friend class FGridTileBuilder;
+	friend class UGridTileBuilder;
 	friend class FGridNavigationBuilder;
 
 	GENERATED_BODY()
@@ -63,9 +83,11 @@ public:
 	UPROPERTY(EditAnywhere, NoClear, Category = "Grid|Settings|Painter")
 		class UGridPainterConfig* GridPainterConfiguration;
 
-
-	UPROPERTY(Replicated, Instanced)
+	UPROPERTY()
 		TArray<UGridTile*> GridTiles;
+	UPROPERTY(Replicated)
+		TArray<FTileOccupationStatus> Occupations;
+
 
 	
 
@@ -80,6 +102,11 @@ public:
 public:
 	UGridPainter* GetGridPainter() {return GridPainter;}
 	void OnConstruction(const FTransform& Transform) override;
+
+	UFUNCTION(BlueprintPure)
+		AActor* GetActorOccupyingTile(const UGridTile* Tile);
+	bool SetActorOccupyingTile(const UGridTile* Tile, AActor* Actor);
+	bool UnsetActorOccupyingTile(const UGridTile* Tile);
 
 	UFUNCTION(BlueprintPure)
 		FVector GetCoordinateWorldCenter(int32 x, int32 y);

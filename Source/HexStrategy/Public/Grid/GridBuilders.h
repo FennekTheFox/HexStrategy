@@ -8,10 +8,10 @@
 class AGridActor;
 class UGridTile;
 
-class  FGridTileBuilder : public FRunnable
+class  UGridTileBuilder : public FRunnable
 {
 public:
-	FGridTileBuilder(AGridActor* _Grid, int32 _x)
+	UGridTileBuilder(AGridActor* _Grid, int32 _x)
 	:Grid(_Grid)
 	,private_x(_x)
 	{};

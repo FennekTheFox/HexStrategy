@@ -159,9 +159,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 		FTileState DisplayState;
 
-	/*The actor that occupies the tile. Replicated because movement is calculated locally*/
-	UPROPERTY(Replicated, VisibleAnywhere)
-		AActor* OccupyingActor;
+	///*The actor that occupies the tile. Replicated because movement is calculated locally*/
+	//UPROPERTY(Replicated, VisibleAnywhere)
+	//	AActor* OccupyingActor;
 
 
 	void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
