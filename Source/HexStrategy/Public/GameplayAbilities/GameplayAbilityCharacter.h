@@ -72,7 +72,7 @@ public:
 	*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Replicated, Category = "Unit|Attributes")
 			FUnitAffiliation Affiliation {
-			EUnitAffiliationType::Neutral0
+			EUnitAffiliationType::Neutral
 	};
 
 	void PostInitializeComponents() override;

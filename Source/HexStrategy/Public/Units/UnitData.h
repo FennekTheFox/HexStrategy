@@ -39,10 +39,12 @@ public:
 
 public:
 	//The units full name
-	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit")
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit", SaveGame)
 		FText UnitName;
-	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit")
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit", SaveGame)
 		FName UnitID;
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit", SaveGame)
+		FName FactionAlignment;
 
 	//The specific values used to tweak racial appearance
 	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)
