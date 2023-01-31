@@ -32,10 +32,11 @@ enum class ESpriteAnimationState : uint8
 {
 	Idle = 0,
 	Walk = 1,
-	Jump = 2,
-	MeleeAttack = 3,
-	RangedAttack = 4,
-	MagicAttack = 5,
+	Run = 2,
+	Jump = 3,
+	MeleeAttack = 10,
+	RangedAttack = 11,
+	MagicAttack = 12,
 
 	Count UMETA(Hidden)
 };
