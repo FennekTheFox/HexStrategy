@@ -34,9 +34,9 @@ enum class ESpriteAnimationState : uint8
 	Walk = 1,
 	Run = 2,
 	Jump = 3,
-	MeleeAttack = 10,
-	RangedAttack = 11,
-	MagicAttack = 12,
+	MeleeAttack = 4,
+	RangedAttack = 5,
+	MagicAttack = 6,
 
 	Count UMETA(Hidden)
 };
