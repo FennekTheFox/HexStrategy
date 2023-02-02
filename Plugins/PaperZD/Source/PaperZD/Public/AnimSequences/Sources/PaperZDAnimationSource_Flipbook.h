@@ -8,7 +8,7 @@
 /**
  * An animation source to be used with Flipbook components.
  */
-UCLASS()
+UCLASS(BlueprintType)
 class PAPERZD_API UPaperZDAnimationSource_Flipbook : public UPaperZDAnimationSource
 {
 	GENERATED_BODY()
