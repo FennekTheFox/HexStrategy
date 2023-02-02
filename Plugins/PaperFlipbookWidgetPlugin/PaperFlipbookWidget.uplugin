@@ -23,7 +23,7 @@
 		},
 		{
 			"Name": "PaperFlipbookWidgetEditor",
-			"Type": "Editor",
+			"Type": "UncookedOnly",
 			"LoadingPhase": "PostEngineInit"
 		}
 	],
