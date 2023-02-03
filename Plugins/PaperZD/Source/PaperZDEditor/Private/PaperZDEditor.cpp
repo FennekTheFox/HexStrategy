@@ -7,6 +7,7 @@
 #include "AssetTypeActions/AssetTypeActions_PaperZDAnimBP.h"
 #include "AssetTypeActions/AssetTypeActions_ZDAnimSeq.h"
 #include "AssetTypeActions/AssetTypeActions_ZDAnimationSource.h"
+#include "AssetTypeActions/AssetTypeActions_ZDAnimMapping.h"
 #include "AssetRegistry/AssetData.h"
 #include "PaperZDAnimBP.h"
 #include "PaperZDCharacter.h"
@@ -15,6 +16,8 @@
 #include "KismetCompiler.h"
 #include "PropertyEditorModule.h"
 #include "Graphs/PaperZDGraphFactory.h"
+#include "PaperZDAnimMapping.h"
+
 
 //Compilation
 #include "Compilers/PaperZDAnimBPCompilerContext.h"
@@ -39,7 +42,7 @@
 //For Sequencer support
 #include "ISequencerModule.h"
 #include "PaperZDAnimationTrackEditor.h"
-
+#include "Editors/DetailCustomizations/AnimMappingDetailCustomization.h"
 #define LOCTEXT_NAMESPACE "FPaperZDEditorModule"
 void FPaperZDEditorModule::StartupModule()
 {
@@ -133,6 +136,10 @@ void FPaperZDEditorModule::RegisterAssetActions()
 
 	AnimationSourceAssetTypeActions = MakeShareable(new FAssetTypeActions_ZDAnimationSource(CustomType));
 	AssetTools.RegisterAssetTypeActions(AnimationSourceAssetTypeActions.ToSharedRef());
+
+
+	AnimMappingAssetTypeActions = MakeShareable(new FAssetTypeActions_ZDAnimMapping(CustomType));
+	AssetTools.RegisterAssetTypeActions(AnimMappingAssetTypeActions.ToSharedRef());
 }
 
 void FPaperZDEditorModule::UnregisterAssetActions()
@@ -159,6 +166,7 @@ void FPaperZDEditorModule::RegisterCustomizations()
 	PropertyModule.RegisterCustomClassLayout(UPaperZDAnimGraphNode_Base::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FPaperZDAnimGraphNodeDetailCustomization::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout(UPaperZDStateGraphNode_Transition::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FPaperZDTransitionGraphNodeDetailCustomization::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout(UPaperZDAnimSequence::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FPaperZDAnimSequenceDetailCustomization::MakeInstance));
+	PropertyModule.RegisterCustomClassLayout(UPaperZDAnimMapping::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FPaperZDAnimMappingDetailCustomization::MakeInstance));
 	//PropertyModule.RegisterCustomClassLayout(UPaperZDAnimGraphNode_Transition::StaticClass()->GetFName(), FOnGetDetailCustomizationInstance::CreateStatic(&FAnimGraphNodeDetailCustomization::MakeInstance));
 }
 

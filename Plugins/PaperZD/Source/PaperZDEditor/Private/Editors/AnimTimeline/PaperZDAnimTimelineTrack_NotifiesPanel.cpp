@@ -15,6 +15,7 @@
 
 //@NOTE: Remove in favor of montage when its available
 #include "AnimSequences/PaperZDAnimSequence.h"
+#include <EditorStyle/Public/EditorStyleSet.h>
 
 #define LOCTEXT_NAMESPACE "FPaperZDAnimTimelineTrack_NotifiesPanel"
 

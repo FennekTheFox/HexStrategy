@@ -9,6 +9,7 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "Widgets/Layout/SBorder.h"
 #include "ScopedTransaction.h"
+#include <EditorStyleSet.h>
 
 //#include "SAnimNotifyPanel.h"
 
