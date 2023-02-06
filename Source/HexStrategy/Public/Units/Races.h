@@ -3,6 +3,7 @@
 #include "UnitPortraits.h"
 #include "UnitBodyType.h"
 #include "UnitOptions.h"
+#include "PaperZDAnimMapping.h"
 
 #include "Races.generated.h"
 
@@ -110,14 +111,14 @@ class UBodyTypeAppearanceData : public UDataAsset
 public:
 	/*The sprite flipbook suit used for this appearance data*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		class USpriteFlipbookSuit* BodyFlipbookSuit;
+		class UPaperZDAnimMapping* AnimationMapping;
 	//The chosen portrait data for this object
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		class UPortraitData* PortraitData;
 
 	//The body type to be of the race 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		EBodyType RaceBodyType = EBodyType::Humanoid;
+		EBodyType RaceBodyType = EBodyType::Human_Male_1;
 
 	//Weighted array to define possible body colors
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)

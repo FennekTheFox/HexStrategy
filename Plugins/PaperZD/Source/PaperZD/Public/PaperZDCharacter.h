@@ -18,9 +18,9 @@ class PAPERZD_API APaperZDCharacter : public APaperCharacter, public IPaperZDSeq
 {
 	GENERATED_UCLASS_BODY()
 
-private:
+public:
 	/* Animation component that manages the AnimBP. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PaperZD", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PaperZD")
 	UPaperZDAnimationComponent* AnimationComponent;
 
 	/* The AnimInstance that drives this character, maintained for backwards compatibility. */

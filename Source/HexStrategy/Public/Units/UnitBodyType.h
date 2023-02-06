@@ -3,7 +3,7 @@
 UENUM(BlueprintType)
 enum class EBodyType : uint8
 {
-	Humanoid,
+	Human_Male_1,
 
 	Count UMETA(Hidden)
 };

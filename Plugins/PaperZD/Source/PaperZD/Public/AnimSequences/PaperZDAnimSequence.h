@@ -165,7 +165,8 @@ public:
 
 	/* Frames per second, used to show the grid on the AnimSequence editor */
 	UFUNCTION(BlueprintPure, Category = "AnimSequence")
-	virtual float GetFramesPerSecond() const;
+		virtual float GetFramesPerSecond() const;
+
 
 	/* Obtains the number of frames on this animation. */
 	virtual int32 GetNumberOfFrames() const;

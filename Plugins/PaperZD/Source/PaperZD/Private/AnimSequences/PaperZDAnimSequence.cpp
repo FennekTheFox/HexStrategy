@@ -6,6 +6,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "IPaperZDEditorProxy.h"
 #include "PaperZDCustomVersion.h"
+#include "../Plugins/2D/Paper2D/Source/Paper2D/Classes/PaperFlipbook.h"
 
 //Setup static variables
 const FName UPaperZDAnimSequence::DefaultCategory(TEXT("Default"));
@@ -88,6 +89,7 @@ float UPaperZDAnimSequence::GetFramesPerSecond() const
 {
 	return 24.0f;
 }
+
 
 int32 UPaperZDAnimSequence::GetNumberOfFrames() const
 {

@@ -1,4 +1,4 @@
-// Copyright 2017 ~ 2022 Critical Failure Studio Ltd. All rights reserved.
+// Copyright 2023, Fennel Fox, Discord @Fennel#7727. Feel free to use this for anything honestly, go nuts.
 
 #include "AssetTypeActions_ZDAnimMapping.h"
 

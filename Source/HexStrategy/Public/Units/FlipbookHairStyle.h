@@ -1,5 +1,6 @@
 #pragma once
 
+#include "PaperZDAnimMapping.h"
 #include "FlipbookHairStyle.generated.h"
 
 //class that defines a hairstyle
@@ -16,7 +17,7 @@ public:
 
 	//The Flipbook suit used for this hairstyle
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-		class USpriteFlipbookSuit* Flipbooks;
+		class UPaperZDAnimMapping* AnimationMapping;
 
 	//TODO: reference for the portrait data
 

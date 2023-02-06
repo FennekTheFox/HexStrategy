@@ -4,6 +4,7 @@
 #include "FlipbookSuits.h"
 #include "GameplayAbilitySpec.h"
 #include "UnitAttributes.h"
+#include "PaperZDAnimMapping.h"
 
 #include "Professions.generated.h"
 
@@ -52,7 +53,7 @@ public:
 
 	/*The Attire Flipbook mapping that this profession uses*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Appearance")
-		TMap<EBodyType, USpriteFlipbookSuit*> ProfessionFlipbooks;
+		TMap<EBodyType, UPaperZDAnimMapping*> ProfessionAnimationMapping;
 	/*Whether or not the attire will hide the hair layer*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Profession|Appearance")
 		bool bEquipmentHidesHair = false;
@@ -71,7 +72,7 @@ private:
 	{
 		for (EBodyType BT : TEnumRange<EBodyType>())
 		{
-			ProfessionFlipbooks.FindOrAdd(BT);
+			ProfessionAnimationMapping.FindOrAdd(BT);
 		}
 		AbilityList.SetNum(MaxProfessionLevel);
 

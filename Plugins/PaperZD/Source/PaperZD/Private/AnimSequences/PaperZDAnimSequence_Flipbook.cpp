@@ -2,6 +2,26 @@
 
 #include "AnimSequences/PaperZDAnimSequence_Flipbook.h"
 #include "PaperZDCustomVersion.h"
+#include "Math/UnrealMathUtility.h"
+
+
+
+UPaperFlipbook* UPaperZDAnimSequence_Flipbook::GetFlipbook() const
+{
+	return AnimDataSource[0];
+}
+
+UPaperFlipbook* UPaperZDAnimSequence_Flipbook::GetDirectionalFlipbook(FVector2D Direction) const
+{
+	static const FVector2D TopPosition(0.0f, 1.0f);
+	const float Sign = Direction.X != 0.0f ? FMath::Sign(Direction.X) : 1.0f;
+	const float AngleRad = FMath::Acos(Direction.GetSafeNormal() | TopPosition) * Sign;
+	float CachedDirectionalAngle = FMath::RadiansToDegrees(AngleRad);
+
+	UPaperFlipbook* out = GetAnimationData<UPaperFlipbook*>(CachedDirectionalAngle);
+
+	return out;
+}
 
 void UPaperZDAnimSequence_Flipbook::PostLoad()
 {

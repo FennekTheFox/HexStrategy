@@ -1,3 +1,5 @@
+// Copyright 2023, Fennel Fox, Discord @Fennel#7727. Feel free to use this for anything honestly, go nuts.
+
 #include "PaperZDAnimMappingFactory.h"
 #include "PaperZDAnimMapping.h"
 #include "AnimSequences/Sources/PaperZDAnimationSource.h"

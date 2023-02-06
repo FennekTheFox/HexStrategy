@@ -42,4 +42,13 @@ public:
 private:
 	/* Helper for getting the primary flipbook of the sequence. */
 	FORCEINLINE UPaperFlipbook* GetPrimaryFlipbook() const { return AnimDataSource.Num() && AnimDataSource[0] ? AnimDataSource[0] : nullptr; }
+
+
+	/* Frames per second, used to show the grid on the AnimSequence editor */
+	UFUNCTION(BlueprintPure, Category = "AnimSequence")
+		class UPaperFlipbook* GetFlipbook() const;
+
+	/* Frames per second, used to show the grid on the AnimSequence editor */
+	UFUNCTION(BlueprintPure, Category = "AnimSequence")
+		class UPaperFlipbook* GetDirectionalFlipbook(FVector2D Direction) const;
 };

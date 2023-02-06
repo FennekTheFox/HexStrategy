@@ -1,4 +1,4 @@
-// Copyright 2017 ~ 2022 Critical Failure Studio Ltd. All rights reserved.
+// Copyright 2023, Fennel Fox, Discord @Fennel#7727. Feel free to use this for anything honestly, go nuts.
 
 #include "AnimMappingDetailCustomization.h"
 #include "AnimSequences/PaperZDAnimSequence.h"
@@ -44,26 +44,6 @@ void FPaperZDAnimMappingDetailCustomization::CustomizeDetails(IDetailLayoutBuild
 		return;
 	}
 
-	//Obtain the data source array, if it exists
-	//DataSourceProperty = AnimSequence->GetAnimDataSourceProperty();
-	//TSharedRef<IPropertyHandle> DirectionalSequencePropertyHandle = DetailBuilder.GetProperty("bDirectionalSequence");
-	//TSharedRef<IPropertyHandle> AngleOffsetPropertyHandle = DetailBuilder.GetProperty("DirectionalAngleOffset");
-	//if (DataSourceProperty == nullptr)
-	//{
-	//	//We have no access to the data source and hence, cannot make use of the "Directional Sequence" widgets nor properties.
-	//	DirectionalSequencePropertyHandle->MarkHiddenByCustomization();
-	//	AngleOffsetPropertyHandle->MarkHiddenByCustomization();
-	//	return;
-	//}
-
-	////Initial modifications to the array itself, marking as fixed order to remove each item's "reordering" widget outline
-	//static const FName Name_DisableReordering("EditFixedOrder");
-	//DataSourceProperty->SetMetaData(Name_DisableReordering, "true");
-	//TSharedRef<IPropertyHandle> DataSourcePropertyHandle = DetailBuilder.GetProperty(DataSourceProperty->GetFName(), AnimSequence->GetClass());
-	//DataSourcePropertyHandle->MarkHiddenByCustomization();
-	//
-	////We store the array handle now that its metadata is setup.
-	//ArrayHandle = DataSourcePropertyHandle->AsArray();
 
 	//Make sure the AnimSequence has a valid number of nodes
 	if (!InitDataSourceHandleForAnimMapping(AnimMapping))
@@ -71,23 +51,6 @@ void FPaperZDAnimMappingDetailCustomization::CustomizeDetails(IDetailLayoutBuild
 		return;
 	}
 	
-	////Setup the directional sequence property... we want to force this to go first in the UI, but for that we need to manually add the property to the detail builder
-	//DirectionalSequencePropertyHandle->SetOnPropertyValueChanged(FSimpleDelegate::CreateSP(this, &FPaperZDAnimSequenceDetailCustomization::OnDirectionalPropertyChange));
-	//DirectionalSequencePropertyHandle->MarkHiddenByCustomization();
-	//DetailBuilder.EditCategory("AnimMapping").AddProperty(DirectionalSequencePropertyHandle);
-	
-	//Angle should be hidden, as it will be shown in-lined alongside the number of nodes on top of the Grid widget
-	//AngleOffsetPropertyHandle->MarkHiddenByCustomization();
-
-	////Create the directional widget
-	//TSharedPtr<SWidget> DirectionalGrid = SNew(SPaperZDAnimDataSourceGrid)
-	//								.InitialSelection(0)
-	//								.ShowTooltip(true)
-	//								.NumNodes(this, &FPaperZDAnimSequenceDetailCustomization::GetNumNodes)
-	//								.AngleOffset(this, &FPaperZDAnimSequenceDetailCustomization::GetAngleOffset)
-	//								.OnNodeHasData(this, &FPaperZDAnimSequenceDetailCustomization::IsDataSourceEntrySet)
-	//								.OnPreviewAreaChange(this, &FPaperZDAnimSequenceDetailCustomization::OnPreviewAreaChange)
-	//								.OnNodeSelectionChange(this, &FPaperZDAnimSequenceDetailCustomization::SelectDataSourceEntry);
 
 	//Create a row for the grid to live in
 	FDetailWidgetRow& EnumPickerRow = DetailBuilder.EditCategory("AnimMapping").AddCustomRow(FText::FromString("DataSource"));
@@ -110,144 +73,10 @@ void FPaperZDAnimMappingDetailCustomization::CustomizeDetails(IDetailLayoutBuild
 				//.TargetPinType(this, &FPaperZDAnimMappingDetailCustomization::GetPinType)
 			]
 		];
-	//DirectionalGridRow
-	//			.Visibility(TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FPaperZDAnimSequenceDetailCustomization::GetDirectionalGridVisibility)))
-	//			.NameContent()
-	//			[
-	//				
-	//				SNew(SVerticalBox)
-	//				+ SVerticalBox::Slot()
-	//				[
-	//					SNew(STextBlock)
-	//					.Text(FText::FromString("Animation Data"))
-	//					.Margin(FMargin(0.0f, 0.0f, 0.0f, 2.0f))
-	//				]
-	//				+ SVerticalBox::Slot()
-	//				[
-	//					SNew(STextBlock)
-	//					.Text(this, &FPaperZDAnimSequenceDetailCustomization::GetAnimationDataDetailText)
-	//					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-	//					.Margin(FMargin(2.0f, 0.0f, 0.0f, 2.0f))
-	//				]
-	//			]
-	//			.ValueContent()
-	//			.MinDesiredWidth(250.0f)
-	//			[
-	//				
-	//				SNew(SBorder)
-	//				.BorderImage(FAppStyle::GetBrush("Graph.Panel.SolidBackground"))
-	//				[
-	//					SNew(SHorizontalBox)
-	//					+ SHorizontalBox::Slot()
-	//					.AutoWidth()
-	//					[
-	//						//Angle and node control
-	//						SNew(SVerticalBox)
-	//						+ SVerticalBox::Slot()
-	//						.AutoHeight()
-	//						.Padding(FMargin(8.0f, 5.0f, 8.0f, 0.0f))
-	//						[
-	//							//Node number setup
-	//							SNew(SHorizontalBox)
-	//							+ SHorizontalBox::Slot()
-	//							.VAlign(VAlign_Center)
-	//							.AutoWidth()
-	//							[
-	//								SNew(STextBlock)
-	//								.Text(FText::FromString("N:"))
-	//								.ColorAndOpacity(FLinearColor::White)
-	//								.Margin(FMargin(0.0f, 0.0f, 5.0f, 0.0f))
-	//							]
-
-	//							+ SHorizontalBox::Slot()
-	//							.VAlign(VAlign_Center)
-	//							.AutoWidth()
-	//							[
-	//								SNew(SNumericEntryBox<uint32>)
-	//								.MinValue(3)
-	//								.MinSliderValue(3)
-	//								.MaxValue(16)
-	//								.MaxSliderValue(16)
-	//								.MinDesiredValueWidth(25.0f)
-	//								.LabelVAlign(VAlign_Center)
-	//								.OnValueCommitted(this, &FPaperZDAnimSequenceDetailCustomization::OnCommitedNumNodes)
-	//								.Value(this, &FPaperZDAnimSequenceDetailCustomization::GetValueForNumNodesNumericEntry)
-	//							]
-
-	//							//Spacer
-	//							+ SHorizontalBox::Slot()
-	//							.VAlign(VAlign_Center)
-	//							.FillWidth(1.0f)
-	//							[
-	//								SNew(SSpacer)
-	//							]
-
-	//							//Angle offset setup
-	//							+ SHorizontalBox::Slot()
-	//							.VAlign(VAlign_Center)
-	//							.AutoWidth()
-	//							[
-	//								SNew(STextBlock)
-	//								.Text(FText::FromString("Angle:"))
-	//								.ColorAndOpacity(FLinearColor::White)
-	//								.Margin(FMargin(0.0f, 0.0f, 5.0f, 0.0f))
-	//							]
-
-	//							+ SHorizontalBox::Slot()
-	//							.VAlign(VAlign_Center)
-	//							.AutoWidth()
-	//							[
-	//								//AngleOffsetPropertyHandle->CreatePropertyValueWidget(true)
-	//							]
-	//						]
-
-	//						//Grid
-	//						+ SVerticalBox::Slot()
-	//						.AutoHeight()
-	//						[
-	//							//DirectionalGrid.ToSharedRef()
-	//						]
-
-	//					]
-	//				]
-	//			];
-
-	////Create in-lined entries for the array data source, these will serve as a "detail view" for the grid.
-	//DataSourceEntryCount = GetNumNodes();
-	//for (int32 i = 0; i < DataSourceEntryCount; i++)
-	//{
-	//	TSharedPtr<IPropertyHandle> Entry = ArrayHandle->GetElement(i);
-	//	IDetailPropertyRow& Row = DetailBuilder.EditCategory("AnimSequence").AddProperty(Entry);
-	//	Row.ShowPropertyButtons(false);
-	//	Row.ShouldAutoExpand(true);
-	//	Row.DisplayName(GetAnimationDataNodeText(i));
-	//	Row.Visibility(TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FPaperZDAnimSequenceDetailCustomization::GetDetailVisibility, i)));
-	//}
-
-	//Init the first node
-	//SelectDataSourceEntry(0);
 }
 
 bool FPaperZDAnimMappingDetailCustomization::InitDataSourceHandleForAnimMapping(UPaperZDAnimMapping* AnimMapping)
 {
-	//uint32 NumElements;
-	//if (ArrayHandle->GetNumElements(NumElements) == FPropertyAccess::Success)
-	//{
-	//	if (AnimSequence->IsDirectionalSequence() && NumElements < MIN_NUM_NODES)
-	//	{
-	//		//Create at least 3 nodes
-	//		static const uint32 DefaultNum = 4;
-	//		SetDataSourceNum(DefaultNum);
-	//	}
-	//	else if (!AnimSequence->IsDirectionalSequence() && NumElements != 1)
-	//	{
-	//		//Make sure there's only 1 node here
-	//		SetDataSourceNum(1);
-	//	}
-
-	//	return true;
-	//}
-
 	return true;
 }
 
@@ -278,28 +107,6 @@ TOptional<uint32> FPaperZDAnimMappingDetailCustomization::GetValueForNumNodesNum
 	return TOptional<uint32>(GetNumNodesUnsigned());
 }
 
-//float FPaperZDAnimMappingDetailCustomization::GetAngleOffset() const
-//{
-//	return AnimMappingPtr.IsValid() ? AnimMappingPtr->GetDirectionalAngleOffset() : 0.0f;
-//}
-
-//void FPaperZDAnimMappingDetailCustomization::SelectDataSourceEntry(int32 Index)
-//{
-//	SelectedNodeIndex = Index;
-//}
-//
-//void FPaperZDAnimMappingDetailCustomization::OnPreviewAreaChange(int32 Index)
-//{
-//	if (AnimMappingPtr.IsValid())
-//	{
-//		AnimMappingPtr->DirectionalPreviewIndex = Index;
-//	}
-//}
-
-//void FPaperZDAnimMappingDetailCustomization::OnDirectionalPropertyChange()
-//{
-//	ForceRefresh();
-//}
 
 void FPaperZDAnimMappingDetailCustomization::OnCommitedNumNodes(uint32 NewValue, ETextCommit::Type CommitType)
 {
@@ -344,11 +151,6 @@ bool FPaperZDAnimMappingDetailCustomization::CheckPostUndoRedoSupport() const
 {
 	//After an UNDO/REDO the property handle doesn't return a valid entry yet, hence we need to query the property directly
 	bool bSupported = false;
-	//if (AnimMappingPtr.IsValid())
-	//{
-	//	//FScriptArrayHelper ArrayHelper(DataSourceProperty, DataSourceProperty->ContainerPtrToValuePtr<uint8>(AnimMappingPtr.Get()));
-	//	bSupported = ArrayHelper.Num() <= DataSourceEntryCount;
-	//}
 
 	return bSupported;
 }
@@ -374,26 +176,5 @@ void FPaperZDAnimMappingDetailCustomization::OnPrePinInfoChange(const FEdGraphPi
 {
 
 }
-
-//FText FPaperZDAnimMappingDetailCustomization::GetAnimationDataDetailText() const
-//{
-//	FFormatNamedArguments Args;
-//	Args.Add(TEXT("N"), GetNumNodes());
-//	return FText::Format(LOCTEXT("AnimDataSourceDetailText", "- {N} Directions -"), Args);
-//}
-
-//FText FPaperZDAnimMappingDetailCustomization::GetAnimationDataNodeText(int32 Index) const
-//{
-	//if (AnimMappingPtr.IsValid() && AnimMappingPtr->IsDirectionalSequence())
-	//{
-	//	FFormatNamedArguments Args;
-	//	Args.Add(TEXT("Node"), Index);
-	//	return FText::Format(LOCTEXT("AnimDataSourceNodeText", "Animation Node {Node}"), Args);
-	//}
-	//else
-	//{
-	//	return FText::FromString(TEXT("Animation Data"));
-	//}
-//}
 
 #undef LOCTEXT_NAMESPACE
