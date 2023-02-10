@@ -4,6 +4,7 @@
 #include "Net/UnrealNetwork.h"
 #include <Engine/ActorChannel.h>
 #include <Net/DataBunch.h>
+#include "Units/Factions.h"
 
 APlayerGameFileData::APlayerGameFileData()
 {
@@ -23,6 +24,7 @@ void APlayerGameFileData::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(APlayerGameFileData, MetaData);
 	DOREPLIFETIME(APlayerGameFileData, PlayerUnitCharacter);
 	DOREPLIFETIME(APlayerGameFileData, PlayerUnits);
+	DOREPLIFETIME(APlayerGameFileData, PlayerFaction);
 	DOREPLIFETIME(APlayerGameFileData, PlayerLocation_MapName);
 	DOREPLIFETIME(APlayerGameFileData, PlayerLocation_PawnLocation);
 	DOREPLIFETIME(APlayerGameFileData, PlayerInventory);
@@ -35,6 +37,7 @@ bool APlayerGameFileData::ReplicateSubobjects(class UActorChannel* Channel, clas
 	bool bWroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 
 	bWroteSomething |= Channel->ReplicateSubobject(PlayerUnitCharacter, *Bunch, *RepFlags);
+	bWroteSomething |= Channel->ReplicateSubobject(PlayerFaction, *Bunch, *RepFlags);
 	bWroteSomething |= Channel->ReplicateSubobjectList(PlayerUnits, *Bunch, *RepFlags);
 
 	return bWroteSomething;
@@ -108,6 +111,7 @@ void UGameFileData_DataAsset::GetRecord(UGameFileData_DataAsset* Data, FGameFile
 	OutRecord.MetaData = Data->MetaData;
 	OutRecord.PlayerUnitCharacter = FObjectRecord::SerializeObject(Data->PlayerUnitCharacter);
 
+	OutRecord.PlayerFaction = FObjectRecord::SerializeObject(Data->PlayerFaction);
 	for (UUnitData* UnitData : Data->PlayerUnits)
 	{
 		OutRecord.PlayerUnits.Add(FObjectRecord::SerializeObject(UnitData));
@@ -127,13 +131,17 @@ UGameFileData_DataAsset* UGameFileData_DataAsset::ExtractFromWrapper(UGameFile_S
 UGameFileData_DataAsset* UGameFileData_DataAsset::FromRecord(const FGameFileRecord& Record, UObject* Outer)
 {
 	UGameFileData_DataAsset* Data = NewObject<UGameFileData_DataAsset>(Outer);
+	Data->PlayerFaction = Record.PlayerFaction.DeserializeObject<UUnitFactionData>(Data);
 
 	Data->MetaData = Record.MetaData;
 	Data->PlayerUnitCharacter = Record.PlayerUnitCharacter.DeserializeObject<UUnitData>(Data);
+	Data->PlayerUnitCharacter->Faction = Data->PlayerFaction;
+
 
 	for (FObjectRecord Unit : Record.PlayerUnits)
 	{
-		Data->PlayerUnits.Add(Unit.DeserializeObject<UUnitData>(Data));
+		UUnitData*& Ref = Data->PlayerUnits.Add_GetRef(Unit.DeserializeObject<UUnitData>(Data));
+		Ref->Faction = Data->PlayerFaction;
 	}
 
 	Data->PlayerLocation_MapName = Record.PlayerLocation_MapName;
@@ -146,14 +154,18 @@ UGameFileData_DataAsset* UGameFileData_DataAsset::FromRecord(const FGameFileReco
 
 void APlayerGameFileData::InitializeFromRecord(const FGameFileRecord& Record)
 {
-	UGameFileData_DataAsset* Data = NewObject<UGameFileData_DataAsset>();
+	//UGameFileData_DataAsset* Data = NewObject<UGameFileData_DataAsset>();
 
 	MetaData = Record.MetaData;
-	PlayerUnitCharacter = Record.PlayerUnitCharacter.DeserializeObject<UUnitData>(Data);
+	PlayerFaction = Record.PlayerFaction.DeserializeObject<UUnitFactionData>(this);
+
+	PlayerUnitCharacter = Record.PlayerUnitCharacter.DeserializeObject<UUnitData>(this);
+	PlayerUnitCharacter->Faction = PlayerFaction;
 
 	for (FObjectRecord Unit : Record.PlayerUnits)
 	{
-		PlayerUnits.Add(Unit.DeserializeObject<UUnitData>(Data));
+		UUnitData*& Ref = PlayerUnits.Add_GetRef(Unit.DeserializeObject<UUnitData>(this));
+		Ref->Faction = PlayerFaction;
 	}
 
 	PlayerLocation_MapName = Record.PlayerLocation_MapName;
@@ -172,6 +184,7 @@ void APlayerGameFileData::GetRecord(FGameFileRecord& OutRecord)
 		OutRecord.PlayerUnits.Add(FObjectRecord::SerializeObject(UnitData));
 	}
 
+	OutRecord.PlayerFaction = FObjectRecord::SerializeObject(PlayerFaction);
 	OutRecord.PlayerLocation_MapName = PlayerLocation_MapName;
 	OutRecord.PlayerLocation_PawnLocation = PlayerLocation_PawnLocation;
 	OutRecord.PlayerInventory = PlayerInventory;

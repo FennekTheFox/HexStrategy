@@ -29,6 +29,9 @@ class UUnitData : public UDataAsset
 {
 	GENERATED_BODY()
 
+	UUnitData();
+
+
 public:
 	void Initialize();
 	void EquipSlotIfNeeded(FItemSlot& Slot);
@@ -43,8 +46,8 @@ public:
 		FText UnitName;
 	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit", SaveGame)
 		FName UnitID;
-	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit", SaveGame)
-		FName FactionAlignment;
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit")
+		FSoftObjectPath Faction;
 
 	//The specific values used to tweak racial appearance
 	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "Unit|Appearance", SaveGame)

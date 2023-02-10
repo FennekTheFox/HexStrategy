@@ -11,7 +11,7 @@
 #include "GameFileData.generated.h"
 
 class UUnitData;
-
+class UUnitFactionData;
 
 /*Contains data that describes the save game, not the actual game state itself.*/
 USTRUCT(BlueprintType)
@@ -48,6 +48,8 @@ public:
 		FObjectRecord PlayerUnitCharacter;
 	UPROPERTY(SaveGame)
 		TArray<FObjectRecord> PlayerUnits;
+	UPROPERTY(SaveGame)
+		FObjectRecord PlayerFaction;
 
 
 	UPROPERTY(SaveGame, EditAnywhere)
@@ -92,6 +94,8 @@ public:
 	//The list of units at the players disposal
 	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
 		TArray<UUnitData*> PlayerUnits;
+	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+		UUnitFactionData* PlayerFaction;
 
 
 	UPROPERTY(Replicated, BlueprintReadWrite, EditAnywhere, Category = "PlayerData|Location")
@@ -170,6 +174,8 @@ public:
 	//The list of units at the players disposal
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
 		TArray<UUnitData*> PlayerUnits;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData")
+		UUnitFactionData* PlayerFaction;
 
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PlayerData|Location")

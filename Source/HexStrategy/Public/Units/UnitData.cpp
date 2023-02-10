@@ -34,6 +34,7 @@ void UUnitData::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutL
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, EquipmentAbilities, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, JoinedDateTime, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, LastUsedDateTime, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UUnitData, Faction, COND_None, REPNOTIFY_Always);
 }
 
 class UUnitData* UUnitData::Duplicate()
@@ -103,6 +104,11 @@ TArray<FName> UUnitData::GetSubBodyOptions()
 
 	return Out;
 }
+
+UUnitData::UUnitData()
+{
+}
+
 
 void UUnitData::Initialize()
 {

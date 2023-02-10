@@ -54,3 +54,4 @@ public:
 		return !(A == B);
 	}
 };
+

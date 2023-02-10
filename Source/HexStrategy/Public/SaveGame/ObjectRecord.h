@@ -48,7 +48,7 @@ public:
 		//UE_LOG(LogTemp, Log, TEXT("Trying to find class of name \"%s\""), *ClassName);
 
 		//Try to find the class (Q: what if the class hasnt been loaded yet?)
-		if (UClass* ObjectClass = ClassName.TryLoadClass<UUnitData>())
+		if (UClass* ObjectClass = ClassName.TryLoadClass<T>())
 		{
 			UObject* Out = NewObject<UObject>(Outer, ObjectClass);
 
