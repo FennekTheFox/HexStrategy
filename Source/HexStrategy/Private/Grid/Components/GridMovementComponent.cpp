@@ -53,8 +53,15 @@ UGridMovementComponent::UGridMovementComponent()
 
 }
 
-void UGridMovementComponent::AttachToGrid_Implementation(AGridActor* NewGrid)
+void UGridMovementComponent::SVR_AttachToGrid_Implementation(AGridActor* NewGrid /*= nullptr*/)
 {
+	AttachToGrid(NewGrid);
+}
+
+void UGridMovementComponent::AttachToGrid(AGridActor* NewGrid)
+{
+	ensure(GetOwner()->HasAuthority());
+
 	if (NewGrid)
 	{
 		//If a grid has been passed, attach to it. If NewGrid is a nullptr, look for a grid

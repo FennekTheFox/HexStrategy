@@ -39,6 +39,8 @@ public:
 	UGridMovementComponent();
 
 	UFUNCTION(Server, reliable, BlueprintCallable)
+		void SVR_AttachToGrid(AGridActor* NewGrid = nullptr);
+	UFUNCTION(BlueprintCallable)
 		void AttachToGrid(AGridActor* NewGrid = nullptr);
 	//UFUNCTION(Client, reliable, BlueprintCallable)
 	//	void CL_AttachToGrid(AGridActor* NewGrid = nullptr);
