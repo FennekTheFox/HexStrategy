@@ -49,6 +49,7 @@ void UGridDecalPainter::UpdateTile(UGridTile* Tile)
 	{
 		//Tile decal doesn't exist yet, create it first
 		DecalComp = NewObject<UDecalComponent>(Grid);;
+		DecalComp->SetIsReplicated(false);
 		DecalComp->RegisterComponent();
 		//DecalComp = NewObject<UDecalComponent>(Tile);;
 		//DecalComp->RegisterComponentWithWorld(Grid->GetWorld());

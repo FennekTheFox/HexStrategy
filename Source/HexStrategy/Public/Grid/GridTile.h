@@ -168,7 +168,7 @@ public:
 
 
 
-	bool IsFullNameStableForNetworking() const override;
+	bool IsSupportedForNetworking() const override;
 
 public:
 

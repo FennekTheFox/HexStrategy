@@ -85,7 +85,7 @@ public:
 
 	UPROPERTY()
 		TArray<UGridTile*> GridTiles;
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Runtime")
 		TArray<FTileOccupationStatus> Occupations;
 
 
@@ -115,7 +115,7 @@ public:
 	UFUNCTION(BlueprintPure)
 		void GetSurroundingTiles(UGridTile* Origin, FInt32Interval Range, int32 MaxHeightDifference, TArray<UGridTile*>& OutTiles);
 
-	UFUNCTION(BlueprintCallable, NetMulticast, reliable)
+	UFUNCTION(BlueprintCallable)
 		void SetIsActive(bool bNewActive);
 
 	UFUNCTION(BlueprintPure)

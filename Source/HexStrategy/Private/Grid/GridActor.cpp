@@ -113,7 +113,7 @@ bool AGridActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, F
 //	if (PropertyChangedEvent.)
 //}
 
-void AGridActor::SetIsActive_Implementation(bool bNewActive)
+void AGridActor::SetIsActive(bool bNewActive)
 {
 	bIsActive = bNewActive;
 

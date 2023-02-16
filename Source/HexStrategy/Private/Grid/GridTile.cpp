@@ -23,9 +23,9 @@ void UGridTile::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutL
 }
 
 
-bool UGridTile::IsFullNameStableForNetworking() const
+bool UGridTile::IsSupportedForNetworking() const
 {
-	return Super::IsFullNameStableForNetworking();
+	return true;
 }
 
 void UGridTile::SetTileState(const UObject* Agent, ETileDisplayState NewState, int32 InLayer /*= 0*/)

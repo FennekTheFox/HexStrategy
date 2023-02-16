@@ -325,6 +325,7 @@ void UGridMovementComponent::OnLeaveTileCompleted(bool bSuccess)
 	//Check if we could successfully leave the tile
 	if (bSuccess)
 	{
+		CurrentTile->AbandonTile(GetOwner());
 		//UE_LOG(LogTemp, Log, TEXT("Leave tile success"))
 
 		//Reduce the available movement via a gameplay effect
