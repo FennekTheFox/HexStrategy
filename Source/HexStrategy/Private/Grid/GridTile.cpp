@@ -47,6 +47,7 @@ void UGridTile::UpdateTile()
 
 bool UGridTile::OccupyTile(AActor* InOccupyingActor)
 {
+	PreoccupyingActor = nullptr;
 	return ParentGrid->SetActorOccupyingTile(this, InOccupyingActor);
 }
 

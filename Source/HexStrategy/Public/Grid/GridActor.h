@@ -19,9 +19,9 @@ struct FTileOccupationStatus
 	, Coordinates(_Coordinates)
 	{}
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 		AActor* OccupyingActor;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 		FIntVector Coordinates;
 };
 
@@ -109,6 +109,8 @@ public:
 	bool UnsetActorOccupyingTile(const UGridTile* Tile);
 
 	UFUNCTION(BlueprintPure)
+		int32 GetStateIndex() {return StateIndex;}
+	UFUNCTION(BlueprintPure)
 		FVector GetCoordinateWorldCenter(int32 x, int32 y);
 	UFUNCTION(BlueprintPure)
 		UGridTile* GetTileClosestToCoordinates(FVector Coordinates, bool bCanBeOccupied = false);
@@ -134,6 +136,6 @@ private:
 	void CreateGrid();
 	void CreateTilesAtCoordinates(int x, int y);
 //#endif
-
-
+	UPROPERTY(Replicated)
+		int32 StateIndex = 0;
 };

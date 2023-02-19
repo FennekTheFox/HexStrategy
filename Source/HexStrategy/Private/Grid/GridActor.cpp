@@ -56,7 +56,7 @@ AActor* AGridActor::GetActorOccupyingTile(const UGridTile* Tile)
 bool AGridActor::SetActorOccupyingTile(const UGridTile* Tile, AActor* Actor)
 {
 	if (!ensure(Tile && Actor)) return false;
-
+	
 	FIntVector Coordinates = Tile->Coordinates;
 
 	int32 s = Occupations.IndexOfByPredicate([Coordinates](const FTileOccupationStatus& state) {
@@ -66,6 +66,7 @@ bool AGridActor::SetActorOccupyingTile(const UGridTile* Tile, AActor* Actor)
 	if (s != INDEX_NONE) return false;
 
 	Occupations.Add(FTileOccupationStatus(Actor, Coordinates));
+	++StateIndex;
 	return true;
 }
 
@@ -82,6 +83,7 @@ bool AGridActor::UnsetActorOccupyingTile(const UGridTile* Tile)
 	if(!ensure(s != INDEX_NONE)) return false;
 
 	Occupations.RemoveAt(s);
+	++StateIndex;
 	return true;
 }
 
@@ -90,6 +92,7 @@ void AGridActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AGridActor, Occupations);
+	DOREPLIFETIME(AGridActor, StateIndex);
 }
 
 bool AGridActor::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)

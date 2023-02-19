@@ -157,6 +157,7 @@ private:
 	bool bAwaitingCallback = false;
 	float UpperBound = 0.f;
 	TArray<UGridTile*> PathToTravel;
+	int32 CachedGridStateIndex = 0;
 	UGridTile* NextTile;
 	FVector NextTileLoc;
 	FVector CurrentTileLoc;

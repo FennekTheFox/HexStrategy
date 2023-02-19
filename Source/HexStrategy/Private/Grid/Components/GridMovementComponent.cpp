@@ -263,7 +263,10 @@ void UGridMovementComponent::GetAllReachableTiles(TArray<UGridTile*>& ReachableT
 	if(GetAvailableMovement() == 0 || !CurrentTile)
 		return;
 
-	if (bReachableTilesCached && ReachableTilesCacheOrigin == CurrentTile && CacheMovementRadius == GetAvailableMovement())
+	if (bReachableTilesCached && 
+		ReachableTilesCacheOrigin == CurrentTile && 
+		CacheMovementRadius == GetAvailableMovement() &&
+		CachedGridStateIndex == Grid->GetStateIndex())
 	{
 		ReachableTiles = CachedReachableTiles;
 	}
@@ -286,6 +289,7 @@ void UGridMovementComponent::GetAllReachableTiles(TArray<UGridTile*>& ReachableT
 		bReachableTilesCached = true;
 		ReachableTilesCacheOrigin = CurrentTile;
 		CachedReachableTiles = ReachableTiles;
+		CachedGridStateIndex = Grid->GetStateIndex();
 	}
 }
 
